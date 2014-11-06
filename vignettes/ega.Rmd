@@ -1,0 +1,21 @@
+---
+title: "ega Vignette"
+author: "Daniel Schmolze"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 7
+    fig_height: 5
+vignette: >
+  %\VignetteIndexEntry{ega Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}
+---
+---
+# Welcome
+
+Welcome to the **ega** package! This vignette will ...
+
+# Introduction to Error Grid Analysis
+
+
