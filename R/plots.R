@@ -66,6 +66,21 @@ plotClarkeGrid <- function(reference_vals, test_vals, zones=NA) {
   xend_Cu <- (intercept_Au-intercept_Cu)/(slope_Cu-slope_Au)
   yend_Cu <- ((slope_Cu*intercept_Au)-(slope_Au*intercept_Cu))/(slope_Cu-slope_Au)
 
+  eu_coords <- list(c(0,180), c(70,180), c(70,Inf))
+  el_coords <- list(c(180,0), c(180,70), c(Inf,70))
+  dr_coords <- list(c(240,70), c(240,180), c(Inf,180))
+  dl_coords <- list(c(0,70), c(70,70), c(70,180), c(0,180))
+  au_coords <- list(c(70,84), c(xend_Au,yend_Au))
+  al_coords <- list(c(70,0), c(70,56), c(xend_Al,yend_Al))
+  cl_coords <- list(c(130,0), c(180,70))
+  cu_coords <- list(c(70,180), c(xend_Cu,yend_Cu))
+
+  labels_list <- list(c(240,230,"A"), c(120,185,"B"),
+                      c(350,230,"B"), c(120,300,"C"),
+                      c(163,20,"C"), c(35,130,"D"),
+                      c(350,130,"D"), c(35,300,"E"),
+                      c(350,35,"E"))
+
   ceg <- ggplot(data, aes(x=ref, y=test)) +
 
     # label the clinially relevant levels
@@ -82,48 +97,18 @@ plotClarkeGrid <- function(reference_vals, test_vals, zones=NA) {
     # color by location type
     geom_point(aes(color=zones)) +
 
-    # zone E upper
-    annotate("segment", x=0, y=180, xend=70, yend=180, alpha=0.6) +
-    annotate("segment", x=70, y=180, xend=70, yend=Inf, alpha=0.6) +
-
-    # zone E lower
-    annotate("segment", x=180, y=0, xend=180, yend=70, alpha=0.6) +
-    annotate("segment", x=180, y=70, xend=Inf, yend=70, alpha=0.6) +
-
-    #zone D right
-    annotate("segment", x=240, y=70, xend=240, yend=180, alpha=0.6) +
-    annotate("segment", x=240, y=180, xend=Inf, yend=180, alpha=0.6) +
-
-    #zone D left
-    annotate("segment", x=0, y=180, xend=70, yend=180, alpha=0.6) +
-    annotate("segment", x=0, y=70, xend=70, yend=70, alpha=0.6) +
-    annotate("segment", x=70, y=70, xend=70, yend=180, alpha=0.6) +
-
-    # zone A upper
-    annotate("segment", x=70, y=84, xend=xend_Au, yend=yend_Au, alpha=0.6) +
-
-    # zone A lower
-    annotate("segment", x=70, y=56, xend=xend_Al, yend=yend_Al, alpha=0.6) +
-
-    # zone A vertical line
-    annotate("segment", x=70, y=0, xend=70, yend=56, alpha=0.6) +
-
-    # zone C lower
-    annotate("segment", x=130, y=0, xend=180, yend=70, alpha=0.6) +
-
-    # zone C upper
-    annotate("segment", x=70, y=180, xend=xend_Cu, yend=yend_Cu, alpha=0.6) +
+    # draw zone lines
+    annotate_lines(eu_coords) +
+    annotate_lines(el_coords) +
+    annotate_lines(dr_coords) +
+    annotate_lines(dl_coords) +
+    annotate_lines(au_coords) +
+    annotate_lines(al_coords) +
+    annotate_lines(cl_coords) +
+    annotate_lines(cu_coords) +
 
     # now add the zone text labels
-    annotate("text", x = 240, y = 230, size=6, label = "A") +
-    annotate("text", x = 120, y = 185, size=6, label = "B") +
-    annotate("text", x = 350, y = 230, size=6, label = "B") +
-    annotate("text", x = 120, y = 300, size=6, label = "C") +
-    annotate("text", x = 163, y = 20, size=6, label = "C") +
-    annotate("text", x = 35, y = 130, size=6, label = "D") +
-    annotate("text", x = 350, y = 130, size=6, label = "D") +
-    annotate("text", x = 35, y = 300, size=6, label = "E") +
-    annotate("text", x = 350, y = 35, size=6, label = "E") +
+    annotate_labels(labels_list) +
 
     # dummy values to expand right and top
     annotate("text", x = 0, y = 350, size=6, label = "") +
@@ -165,6 +150,44 @@ plotParkesGrid <- function(reference_vals, test_vals, zones=NA) {
   # create a df for ggplot
   data <- data.frame("ref"=reference_vals, "test"=test_vals, "zones"=zones)
 
+  # zone B upper
+  # 0/50->30/50->140/170->280/380->5000/5729.3
+  bu_coords <- list(c(0,50), c(30, 50), c(140, 170),
+                    c(280, 380), c(5000, 5729.3))
+
+  # zone B lower
+  # 50/0->50/30->170/145->385/300->5000/4495.45
+  bl_coords <- list(c(50,0), c(50,30), c(170,145),
+                    c(385,300), c(5000, 4495.45))
+
+  # zone C upper
+  # 0/60->30/60->50/80->70/110->5000/11526.84
+  cu_coords <- list(c(0,60), c(30,60), c(50,80),
+                    c(70,110), c(5000, 11526.84))
+
+  # zone C lower
+  # 120/0->120/30->260/130->5000/2091.38
+  cl_coords <- list(c(120,0), c(120,30), c(260,130),
+                    c(5000, 2091.38))
+
+  # zone D upper
+  # 0/100->25/100->50/125->80/215->5000/36841.67
+  du_coords <- list(c(0,100), c(25,100), c(50,125),
+                    c(80,215), c(5000,36841.67))
+
+  # zone D lower
+  # 250/0->250/40->5000/1781.67
+  dl_coords <- list(c(250,0), c(250,40), c(5000,1781.67))
+
+  # zone E upper
+  # 0/150->35/155->5000/130900
+  eu_coords <- list(c(0,150), c(35,155), c(5000,130900))
+
+  label_list <- list(c(320,320,"A"), c(220,360,"B"),
+                     c(385,235,"B"), c(140,375,"C"),
+                     c(405,145,"C"), c(415,50,"D"),
+                     c(75,383,"D"), c(21,383,"E"))
+
   peg <- ggplot(data, aes(x=ref, y=test)) +
 
     # label the clinially relevant levels
@@ -181,59 +204,17 @@ plotParkesGrid <- function(reference_vals, test_vals, zones=NA) {
     # color by zone
     geom_point(aes(color=zones)) +
 
-    # zone B upper
-    # 0/50->30/50->140/170->280/380->5000/5729.3
-    annotate("segment", x=0, y=50, xend=30, yend=50, alpha=0.6) +
-    annotate("segment", x=30, y=50, xend=140, yend=170, alpha=0.6) +
-    annotate("segment", x=140, y=170, xend=280, yend=380, alpha=0.6) +
-    annotate("segment", x=280, y=380, xend=5000, yend=5729.3, alpha=0.6) +
-
-    # zone B lower
-    # 50/0->50/30->170/145->385/300->5000/4495.45
-    annotate("segment", x=50, y=0, xend=50, yend=30, alpha=0.6) +
-    annotate("segment", x=50, y=30, xend=170, yend=145, alpha=0.6) +
-    annotate("segment", x=170, y=145, xend=385, yend=300, alpha=0.6) +
-    annotate("segment", x=385, y=300, xend=5000, yend=4495.45, alpha=0.6) +
-
-    # zone C upper
-    # 0/60->30/60->50/80->70/110->5000/11526.84
-    annotate("segment", x=0, y=60, xend=30, yend=60, alpha=0.6) +
-    annotate("segment", x=30, y=60, xend=50, yend=80, alpha=0.6) +
-    annotate("segment", x=50, y=80, xend=70, yend=110, alpha=0.6) +
-    annotate("segment", x=70, y=110, xend=5000, yend=11526.84, alpha=0.6) +
-
-    # zone C lower
-    # 120/0->120/30->260/130->5000/2091.38
-    annotate("segment", x=120, y=0, xend=120, yend=30, alpha=0.6) +
-    annotate("segment", x=120, y=30, xend=260, yend=130, alpha=0.6) +
-    annotate("segment", x=260, y=130, xend=5000, yend=2091.38, alpha=0.6) +
-
-    # zone D upper
-    # 0/100->25/100->50/125->80/215->5000/36841.67
-    annotate("segment", x=0, y=100, xend=25, yend=100, alpha=0.6) +
-    annotate("segment", x=25, y=100, xend=50, yend=125, alpha=0.6) +
-    annotate("segment", x=50, y=125, xend=80, yend=215, alpha=0.6) +
-    annotate("segment", x=80, y=215, xend=5000, yend=36841.67, alpha=0.6) +
-
-    # zone D lower
-    # 250/0->250/40->5000/1781.67
-    annotate("segment", x=250, y=0, xend=250, yend=40, alpha=0.6) +
-    annotate("segment", x=250, y=40, xend=5000, yend=1781.67, alpha=0.6) +
-
-    # zone E upper
-    # 0/150->35/155->5000/130900
-    annotate("segment", x=0, y=150, xend=35, yend=155, alpha=0.6) +
-    annotate("segment", x=35, y=155, xend=5000, yend=130900, alpha=0.6) +
+    # draw zone lines
+    annotate_lines(bu_coords) +
+    annotate_lines(bl_coords) +
+    annotate_lines(cu_coords) +
+    annotate_lines(cl_coords) +
+    annotate_lines(du_coords) +
+    annotate_lines(dl_coords) +
+    annotate_lines(eu_coords) +
 
     # zone text labels
-    annotate("text", x = 320, y = 320, size=6, label = "A") +
-    annotate("text", x = 220, y = 360, size=6, label = "B") +
-    annotate("text", x = 385, y = 235, size=6, label = "B") +
-    annotate("text", x = 140, y = 375, size=6, label = "C") +
-    annotate("text", x = 405, y = 145, size=6, label = "C") +
-    annotate("text", x = 415, y = 50, size=6, label = "D") +
-    annotate("text", x = 75, y = 383, size=6, label = "D") +
-    annotate("text", x = 21, y = 383, size=6, label = "E") +
+    annotate_labels(label_list, size=6) +
 
     # dummy values to force minimum size
     annotate("text", x = 0, y = 550, size=6, label = "") +
@@ -243,5 +224,46 @@ plotParkesGrid <- function(reference_vals, test_vals, zones=NA) {
     theme(legend.position="none")
 
   peg
+
+}
+
+
+annotate_lines <- function(xy_list, alpha=0.6) {
+
+  lines <- length(xy_list)-1
+
+  segs <- vector(mode="list", length=lines)
+
+  for (i in 1:lines) {
+
+    xy1 <- xy_list[[i]]
+    xy2 <- xy_list[[i+1]]
+
+    segs[[i]] <- annotate("segment", x=xy1[1], y=xy1[2], xend=xy2[1],
+                        yend=xy2[2], alpha=alpha)
+
+  }
+
+  segs
+
+}
+
+
+annotate_labels <- function(label_list, size=6) {
+
+  lbls <- vector(mode="list", length=length(label_list))
+
+  for (i in 1:length(lbls)) {
+
+    lbl <- label_list[[i]]
+    x <- as.numeric(lbl[1])
+    y <- as.numeric(lbl[2])
+    txt <- lbl[3]
+
+    lbls[[i]] <- annotate("text", x=x, y=y, size=size, label=txt)
+
+  }
+
+  lbls
 
 }

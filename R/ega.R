@@ -263,7 +263,7 @@ generateGlucoseData <- function(n=100, precision=0.2, lower=90, upper=130) {
 
     test_vals <- sapply(reference_vals, generateTestValues, precision)
 
-    return(list("reference_vals"=reference_vals, "test_vals"=test_vals))
+    list("reference_vals"=reference_vals, "test_vals"=test_vals)
 
 }
 
