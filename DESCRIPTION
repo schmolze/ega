@@ -6,7 +6,9 @@ Authors@R: c(
     email="ega@schmolze.com", role=c("aut", "cre"))
     )
 Maintainer: Daniel Schmolze <ega@schmolze.com>
-Description: What the package does (one paragraph)
+Description: The package provides functions for assigning Clarke or Parkes
+    error grid zones to paired reference/glucose data, and for plotting
+    the error zones with ggplot2.
 Depends:
     R (>= 2.14.0)
 Imports:

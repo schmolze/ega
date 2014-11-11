@@ -34,11 +34,19 @@ NULL
 #' in \code{referenceVals}, so the length should be the same.
 #' @return A character vector is returned, with each element being one of
 #' \code{"A"}, \code{"B"}, \code{"C"}, \code{"D"}, or \code{"E"}.
+#' @examples
+#' zones <- getClarkeZones(glucose_data$ref, glucose_data$test)
+#'
+#' # counts
+#' table(zones)
+#'
+#' # percentages
+#' table(zones)/length(zones)*100
+#'
 #' @references
 #' Clarke, W. L., D. Cox, L. A. Gonder-Frederick, W. Carter, and S. L. Pohl.
-#' “Evaluating Clinical Accuracy of Systems for Self-Monitoring of Blood Glucose.”
-#' Diabetes Care 10, no. 5 (September 1, 1987): 622–28.
-#' doi:10.2337/diacare.10.5.622.
+#' "Evaluating Clinical Accuracy of Systems for Self-Monitoring of Blood
+#' Glucose." Diabetes Care 10, no. 5 (September 1, 1987): 622-28.
 getClarkeZones <- function(referenceVals, testVals) {
 
   zones <- vector(mode="character", length = length(referenceVals))
@@ -101,14 +109,23 @@ getClarkeZones <- function(referenceVals, testVals) {
 #' or Type 2 diabetes. Defaults to 1.
 #' @return A character vector is returned, with each element being one of
 #' \code{"A"}, \code{"B"}, \code{"C"}, \code{"D"}, or \code{"E"}.
-#' @references
-#' Parkes, J. L., S. L. Slatin, S. Pardo, and B. H. Ginsberg. “A New Consensus
-#' Error Grid to Evaluate the Clinical Significance of Inaccuracies in the
-#' Measurement of Blood Glucose.” Diabetes Care 23, no. 8 (August 2000): 1143–48.
+#' @examples
+#' zones <- getParkesZones(glucose_data$ref, glucose_data$test)
 #'
-#' Pfützner, Andreas, David C. Klonoff, Scott Pardo, and
-#' Joan L. Parkes. “Technical Aspects of the Parkes Error Grid.” Journal of
-#' Diabetes Science and Technology 7, no. 5 (September 2013): 1275–81.
+#' # counts
+#' table(zones)
+#'
+#' # percentages
+#' table(zones)/length(zones)*100
+#' @references
+#' Parkes, J. L., S. L. Slatin, S. Pardo, and B.H. Ginsberg. "A New Consensus
+#' Error Grid to Evaluate the Clinical Significance of Inaccuracies in the
+#' Measurement of Blood Glucose." Diabetes Care 23, no. 8 (August 2000):
+#' 1143-48
+#'
+#' Pfutzner, Andreas, David C. Klonoff, Scott Pardo, and Joan L. Parkes.
+#' "Technical Aspects of the Parkes Error Grid." Journal of Diabetes Science
+#' and Technology 7, no. 5 (September 2013): 1275-81
 getParkesZones <- function(referenceVals, testVals, type=1) {
 
   if (type != 1 & type != 2)
@@ -326,36 +343,6 @@ getParkesZones <- function(referenceVals, testVals, type=1) {
   zones <- replace(zones, zones=="", "A")
 
   zones
-
-}
-
-
-#' @export
-#' @title Generate "reference" and "test" glucose data.
-#' @description Description goes here.
-generateGlucoseData <- function(n=100, precision=0.2, lower=90, upper=130) {
-
-    nl_range <- lower:upper
-
-    reference_vals <- sample(nl_range, n, TRUE)
-
-    generateTestValues <- function(reference_val, precision) {
-
-      # possible percentages by which to alter the test value
-      precision_seq <- seq(0, precision, by=0.01)
-
-      dir <- sample(c(1,-1), 1)
-      amt <- sample(precision_seq, 1) * dir
-
-      test_val <- reference_val + (amt*reference_val)
-
-      return(test_val)
-
-    }
-
-    test_vals <- sapply(reference_vals, generateTestValues, precision)
-
-    list("reference_vals"=reference_vals, "test_vals"=test_vals)
 
 }
 

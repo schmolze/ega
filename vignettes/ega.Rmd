@@ -37,4 +37,103 @@ cor(glucose_data$ref, glucose_data$test)
 
 A basic problem with this approach is that it fails to capture the clinical context of the discrepencies. For example, a pair (300, 550) represents a large numerical discrepency, but is unlikely to result in an adverse clinical outcome since in either case the patient will probably receive insulin. On the other hand, a discrepency of 70 vs. 110 could have serious clinical consequences since hypoglycemic therapy may be administered in the former case, possibly erroneously. 
 
-Error grids address this problem by attempting to place paired values into various "zones" defined by the clinical impact of the discrepency.
+Error grids address this problem by attempting to place paired values into various "zones" defined by the clinical impact of the discrepency. There are two major systems in use: the Clarke error grid, and the Parkes, or consensus, error grid. Both systems place paired reference/test values into one of five zones -- "A", "B", "C", "D" or "E" based on the expected clinical impact of the discrepency. 
+
+In the Clarke system, pairs are considered clinically accurate and assigned to zone A if there is no more than a 20% discrepancy (for glucose values greater than 70). Zone B contains pairs with greater than 20% discrepancy, but with no expected adverse clinical consequence. Zone C discrepencies may lead to errors in treatment, but with low risk of adverse clinical outcomes. Together, zones A-C can be considered clinically benign discrepancies. Zone D discrepencies may lead to erroneous failures to treat, while zone E represents potential for innapropriate treatment. 
+
+The Clarke error grid, while based on sound clinical reasoning, contains arbitrary cut-offs. For example, the 20% cut-off for zone A has proven somewhat too lenient, especially for regulatory purposes. The grid lines are also discontinuous, which makes construction and interpretation more difficult. The Parkes (consensus) error grid builds on the Clarke system, but with various improvements. First, as the name indicates, the grid was constructed by asking 100 diabetes experts to place discrepencies into one of five zones. The zones were defined as follows: A = no effect on clinical action, B = altered clinical action with little to no effect on clinical outcome, C = altered clinical action, likely to effect clinical outcome, D = altered clinical action, could have significant medical risk, E = altered clinical action, could have dangerous consequences. Seperate zone assignments were recorded for Type 1 and Type 2 diabetes, and an error grid with continuous zone lines was calculated based on all the responses (the method is discussed in detail in the references below).
+
+# Using ***ega***
+
+**ega** provides two basic functions for both Clarke and Parkes error grids. The first assigns zones ("A", "B", "C", "D" or "E") to paired reference/glucose values, while the second plots the respective error grids using the `ggplot` package.
+
+The built-in dataset `glucose_data` contains sample paired glucose values for 5072 patients. The function `getClarkeZones` will assign Clarke zones:
+
+```{r}
+zones <- getClarkeZones(glucose_data$ref, glucose_data$test)
+
+head(zones)
+```
+
+The return value is a simple character vector, of the same length as the input data, with a zone assignment corresponding to each pair. We can use the `factor` function to summarize the distribution of zones:
+
+```{r}
+zones <- factor(zones)
+
+# counts
+table(zones)
+
+# percentages
+table(zones)/length(zones)*100
+```
+
+For this particular dataset, 71.6+23+1 = 95.6% of pairs fall within the clinically acceptable zones A-C. 
+
+Let's plot the data on a Clarke error grid using the function `plotClarkeGrid`:
+
+```{r}
+plotClarkeGrid(glucose_data$ref, glucose_data$test)
+```
+
+The plot can be tweaked via various parameters:
+
+```{r}
+plotClarkeGrid(glucose_data$ref, glucose_data$test, 
+               pointsize=1.5, 
+               pointalpha=0.6, 
+               linetype="dashed")
+```
+
+Additionally, the return value from `plotClarkeGrid` (a `ggplot` object) can be stored and modified:
+
+```{r}
+ceg <- plotClarkeGrid(glucose_data$ref, glucose_data$test)
+
+ceg + theme_gray() + 
+  theme(plot.title = element_text(size = rel(2), colour = "blue"))
+```
+
+The `ggplot` documentation for `theme` should be consulted for additional possibilities.
+
+Analogous functions are provided for the Parkes error grid. For example, `getParkesZones` will assign Parkes zones to paired glucose values:
+
+```{r}
+zones <- getParkesZones(glucose_data$ref, glucose_data$test)
+
+zones <- factor(zones)
+
+# counts
+table(zones)
+
+# percentages
+table(zones)/length(zones)*100
+```
+
+And for plotting:
+
+```{r}
+plotParkesGrid(glucose_data$ref, glucose_data$test)
+```
+
+A similar set of arguments can be specified to control basic plotting properties, and the return value can likewise be stored and modified.
+
+# Wrapping up
+
+This concludes the vignette. For additional information, please consult the reference manual. For detailed discussion of the Clarke error grid, the original paper by Clarke et. al. should be consulted:
+
+Clarke, W. L., D. Cox, L. A. Gonder-Frederick, W. Carter, and S. L. Pohl.
+"Evaluating Clinical Accuracy of Systems for Self-Monitoring of Blood
+Glucose." Diabetes Care 10, no. 5 (September 1, 1987): 622-28.
+
+For the Parkes (consensus) error grid, the original paper by Parkes et. al. discusses the system in general terms:
+
+Parkes, J. L., S. L. Slatin, S. Pardo, and B.H. Ginsberg. "A New Consensus
+Error Grid to Evaluate the Clinical Significance of Inaccuracies in the
+Measurement of Blood Glucose." Diabetes Care 23, no. 8 (August 2000):
+1143-48
+
+For a more technical discussion, including the details necessary for drawing the grid lines, the following reference is useful:
+
+Pfutzner, Andreas, David C. Klonoff, Scott Pardo, and Joan L. Parkes.
+"Technical Aspects of the Parkes Error Grid." Journal of Diabetes Science
+and Technology 7, no. 5 (September 2013): 1275-81

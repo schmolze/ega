@@ -42,13 +42,29 @@
 #' will be called to generate zone labels.
 #' @return A \code{\link[ggplot2]{ggplot}} object is returned. If the return
 #' value is not assigned, a plot is drawn.
+#' @examples
+#' library(ggplot2)
+#'
+#' # default
+#' plotClarkeGrid(glucose_data$ref, glucose_data$test)
+#'
+#' # with options
+#' plotClarkeGrid(glucose_data$ref, glucose_data$test,
+#'               pointsize=1.5,
+#'               pointalpha=0.6,
+#'               linetype="dashed")
+#'
+#' # store return value and modify
+#' ceg <- plotClarkeGrid(glucose_data$ref, glucose_data$test)
+#'
+#' ceg + theme_gray() +
+#'    theme(plot.title = element_text(size = rel(2), colour = "blue"))
 #' @seealso
 #' \code{\link{getClarkeZones}} \code{\link[ggplot2]{ggplot}}
 #' @references
 #' Clarke, W. L., D. Cox, L. A. Gonder-Frederick, W. Carter, and S. L. Pohl.
-#' “Evaluating Clinical Accuracy of Systems for Self-Monitoring of Blood Glucose.”
-#' Diabetes Care 10, no. 5 (September 1, 1987): 622–28.
-#' doi:10.2337/diacare.10.5.622.
+#' "Evaluating Clinical Accuracy of Systems for Self-Monitoring of Blood
+#' Glucose." Diabetes Care 10, no. 5 (September 1, 1987): 622-28.
 plotClarkeGrid <- function(referenceVals, testVals,
                            title="Clarke Error Grid",
                            xlab="Reference Glucose Concentration (mg/dL)",
@@ -217,16 +233,36 @@ plotClarkeGrid <- function(referenceVals, testVals,
 #' will be called to generate zone labels.
 #' @return A \code{\link[ggplot2]{ggplot}} object is returned. If the return
 #' value is not assigned, a plot is drawn.
+#' @examples
+#' library(ggplot2)
+#'
+#' # default
+#' plotParkesGrid(glucose_data$ref, glucose_data$test)
+#'
+#' # with options
+#' plotParkesGrid(glucose_data$ref, glucose_data$test,
+#'               pointsize=2,
+#'               pointalpha=0.5,
+#'               linesize=2,
+#'               linealpha=0.3,
+#'               linetype="dotdash")
+#'
+#' # store return value and modify
+#' peg <- plotParkesGrid(glucose_data$ref, glucose_data$test, type=2)
+#'
+#' peg + theme_gray() +
+#'    theme(plot.title = element_text(size = rel(2), colour = "red"))
 #' @seealso
 #' \code{\link{getParkesZones}} \code{\link[ggplot2]{ggplot}}
 #' @references
-#' Parkes, J. L., S. L. Slatin, S. Pardo, and B. H. Ginsberg. “A New Consensus
+#' Parkes, J. L., S. L. Slatin, S. Pardo, and B.H. Ginsberg. "A New Consensus
 #' Error Grid to Evaluate the Clinical Significance of Inaccuracies in the
-#' Measurement of Blood Glucose.” Diabetes Care 23, no. 8 (August 2000): 1143–48.
+#' Measurement of Blood Glucose." Diabetes Care 23, no. 8 (August 2000):
+#' 1143-48
 #'
-#' Pfützner, Andreas, David C. Klonoff, Scott Pardo, and
-#' Joan L. Parkes. “Technical Aspects of the Parkes Error Grid.” Journal of
-#' Diabetes Science and Technology 7, no. 5 (September 2013): 1275–81.
+#' Pfutzner, Andreas, David C. Klonoff, Scott Pardo, and Joan L. Parkes.
+#' "Technical Aspects of the Parkes Error Grid." Journal of Diabetes Science
+#' and Technology 7, no. 5 (September 2013): 1275-81
 plotParkesGrid <- function(referenceVals, testVals, type=1,
                            title=NA,
                            xlab="Reference Glucose Concentration (mg/dL)",
