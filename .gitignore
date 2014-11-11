@@ -21,3 +21,5 @@ man/plotClarkeGrid.Rd
 man/plotParkesGrid.Rd
 
 test.R
+
+man/glucose_data.Rd

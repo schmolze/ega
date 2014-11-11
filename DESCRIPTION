@@ -1,5 +1,5 @@
 Package: ega
-Title: Error Grid Analysis for Blood Glucose Meters
+Title: Clarke and Parkes (Consensus) error grid analysis
 Version: 1.0.0
 Authors@R: c(
     person("Daniel", "Schmolze",

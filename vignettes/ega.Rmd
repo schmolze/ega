@@ -14,8 +14,27 @@ vignette: >
 ---
 # Welcome
 
-Welcome to the **ega** package! This vignette will ...
+Welcome to the **ega** package! This vignette will explain the functionality of the package via hands-on examples, after first discussing error grids in general.
 
 # Introduction to Error Grid Analysis
 
+This section explains the basic concepts of error grids for analyzing glucose data. If you're already familiar with the Clarke and Parkes error grids, feel free to skip ahead. 
 
+When a glucose meter is being validated for regulatory or clinical purposes, a method comparison study is usually performed. This entails testing patients using both the reference method and the new meter, and comparing the results. An initial approach might be to simply plot the paired values. Let's do this for the built-in dataset `glucose_data`:
+
+```{r}
+library(ega)
+library(ggplot2)
+
+ggplot(glucose_data, aes(ref, test)) + geom_point()
+```
+
+There seems to be a fair bit of scatter, which we can quantify with a correlation coefficient:
+
+```{r}
+cor(glucose_data$ref, glucose_data$test)
+```
+
+A basic problem with this approach is that it fails to capture the clinical context of the discrepencies. For example, a pair (300, 550) represents a large numerical discrepency, but is unlikely to result in an adverse clinical outcome since in either case the patient will probably receive insulin. On the other hand, a discrepency of 70 vs. 110 could have serious clinical consequences since hypoglycemic therapy may be administered in the former case, possibly erroneously. 
+
+Error grids address this problem by attempting to place paired values into various "zones" defined by the clinical impact of the discrepency.

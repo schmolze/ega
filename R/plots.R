@@ -1,29 +1,74 @@
 #' @export
-#' @title Plot a Clarke Error Grid for the given data.
-#' @description Description goes here.
-#' @param reference_vals A vector of glucose values obtained via the reference
+#' @title Plot a Clarke Error Grid
+#' @description The function uses \code{\link[ggplot2]{ggplot}} to draw the
+#' Clarke error grid lines according to the criteria described in the
+#' original publication by Clarke et. al. (see reference below). If zones
+#' have not already been assigned via the \code{zones} parameter, the
+#' function \code{\link{getClarkeZones}} is called first. The values in
+#' \code{referenceVals} and \code{testVals} are then superimposed as a scatter
+#' plot. Some basic plot parameters can be specified as arguments, but the
+#' return value can also be stored and modified further before plotting
+#' (see examples and vignette).
+#' @param referenceVals A vector of glucose values obtained via the reference
 #' method.
-#' @param test_vals A vector of glucose values obtained via a non-reference
+#' @param testVals A vector of glucose values obtained via a non-reference
 #' method (e.g. a new meter). The values in this vector are paired with those
-#' in \code{reference_vals}, so the length should be the same.
+#' in \code{referenceVals}, so the length should be the same.
+#' @param title The main plot title. Defaults to "Clarke Error Grid".
+#' @param xlab The x-axis label. Defaults to "Reference Glucose
+#' Concentration (mg/dL)".
+#' @param ylab The y-axis label. Defaults to "Test Glucose Concentration
+#' (mg/dL)".
+#' @param linesize The size to be used when drawing the zone lines. The
+#' acceptable values are the same as for \code{\link[ggplot2]{geom_segment}}.
+#' The default is 0.5.
+#' @param linetype The type of line to be used when drawing the zone lines. The
+#' acceptable values are the same as for \code{\link[ggplot2]{geom_segment}}.
+#' The default is "solid".
+#' @param linecolor The color of the zone lines. The acceptable values are the
+#' same as for \code{\link[ggplot2]{geom_segment}}.
+#' The default is "black".
+#' @param linealpha The alpha (transparency) level to be used when drawing
+#' the zone lines. The acceptable values are the same as for
+#' \code{\link[ggplot2]{geom_segment}}. The default is 0.6.
+#' @param pointsize The size to be used when plotting the glucose data points.
+#' The acceptable values are the same as for \code{\link[ggplot2]{geom_point}}.
+#' The default is 2.
+#' @param pointalpha The alpha (transparency) level to be used when plotting
+#' the glucose data points. The acceptable values are the same as for
+#' \code{\link[ggplot2]{geom_point}}. The default is 1.
 #' @param zones An optional character vector specifying the Clarke zones
 #' for each paired value. If this is not supplied, \code{\link{getClarkeZones}}
 #' will be called to generate zone labels.
+#' @return A \code{\link[ggplot2]{ggplot}} object is returned. If the return
+#' value is not assigned, a plot is drawn.
+#' @seealso
+#' \code{\link{getClarkeZones}} \code{\link[ggplot2]{ggplot}}
 #' @references
 #' Clarke, W. L., D. Cox, L. A. Gonder-Frederick, W. Carter, and S. L. Pohl.
 #' “Evaluating Clinical Accuracy of Systems for Self-Monitoring of Blood Glucose.”
 #' Diabetes Care 10, no. 5 (September 1, 1987): 622–28.
 #' doi:10.2337/diacare.10.5.622.
-plotClarkeGrid <- function(reference_vals, test_vals, zones=NA) {
+plotClarkeGrid <- function(referenceVals, testVals,
+                           title="Clarke Error Grid",
+                           xlab="Reference Glucose Concentration (mg/dL)",
+                           ylab="Test Glucose Concentration (mg/dL)",
+                           linesize=0.5,
+                           linetype="solid",
+                           linecolor="black",
+                           linealpha=0.6,
+                           pointsize=2,
+                           pointalpha=1,
+                           zones=NA) {
 
   # use default zone assignment if none is provided
   if (is.na(zones))
-    zones <- getClarkeZones(reference_vals, test_vals)
+    zones <- getClarkeZones(referenceVals, testVals)
 
   tolerance <- 0.2
 
   # create a df for ggplot
-  data <- data.frame("ref"=reference_vals, "test"=test_vals, "zones"=zones)
+  data <- data.frame("ref"=referenceVals, "test"=testVals, "zones"=zones)
 
   zoneA <- subset(data, zones=="A")
   maxA <- max(zoneA[["ref"]])
@@ -95,17 +140,17 @@ plotClarkeGrid <- function(reference_vals, test_vals, zones=NA) {
                        expand=c(0, 0)) +
 
     # color by location type
-    geom_point(aes(color=zones)) +
+    geom_point(aes(color=zones), size=pointsize, alpha=pointalpha) +
 
     # draw zone lines
-    annotate_lines(eu_coords) +
-    annotate_lines(el_coords) +
-    annotate_lines(dr_coords) +
-    annotate_lines(dl_coords) +
-    annotate_lines(au_coords) +
-    annotate_lines(al_coords) +
-    annotate_lines(cl_coords) +
-    annotate_lines(cu_coords) +
+    annotate_lines(eu_coords, linesize, linetype, linecolor, linealpha) +
+    annotate_lines(el_coords, linesize, linetype, linecolor, linealpha) +
+    annotate_lines(dr_coords, linesize, linetype, linecolor, linealpha) +
+    annotate_lines(dl_coords, linesize, linetype, linecolor, linealpha) +
+    annotate_lines(au_coords, linesize, linetype, linecolor, linealpha) +
+    annotate_lines(al_coords, linesize, linetype, linecolor, linealpha) +
+    annotate_lines(cl_coords, linesize, linetype, linecolor, linealpha) +
+    annotate_lines(cu_coords, linesize, linetype, linecolor, linealpha) +
 
     # now add the zone text labels
     annotate_labels(labels_list) +
@@ -115,7 +160,10 @@ plotClarkeGrid <- function(reference_vals, test_vals, zones=NA) {
     annotate("text", x = 400, y = 0, size=6, label = "") +
 
     theme_bw() +
-    theme(legend.position="none")
+    theme(legend.position="none") +
+    ggtitle(title) +
+    xlab(xlab) +
+    ylab(ylab)
 
   ceg
 
@@ -123,16 +171,54 @@ plotClarkeGrid <- function(reference_vals, test_vals, zones=NA) {
 
 
 #' @export
-#' @title Plot a Parkes (Consensus) Error Grid for the given data.
-#' @description Description goes here.
-#' @param reference_vals A vector of glucose values obtained via the reference
+#' @title Plot a Parkes (Consensus) Error Grid
+#' @description The function uses \code{\link[ggplot2]{ggplot}} to draw the
+#' Parkes (consensus) error grid lines according to the criteria described in
+#' the publications listed in the References section (see below). If zones
+#' have not already been assigned via the \code{zones} parameter, the
+#' function \code{\link{getParkesZones}} is called first. The values in
+#' \code{referenceVals} and \code{testVals} are then superimposed as a scatter
+#' plot. Some basic plot parameters can be specified as arguments, but the
+#' return value can also be stored and modified further before plotting
+#' (see examples and vignette).
+#' @param referenceVals A vector of glucose values obtained via the reference
 #' method.
-#' @param test_vals A vector of glucose values obtained via a non-reference
+#' @param testVals A vector of glucose values obtained via a non-reference
 #' method (e.g. a new meter). The values in this vector are paired with those
-#' in \code{reference_vals}, so the length should be the same.
+#' in \code{referenceVals}, so the length should be the same.
+#' @param type An integer (1 or 2) specifying whether to plot the grid for Type 1
+#' or Type 2 diabetes. Defaults to 1.
+#' @param title The main plot title. Defaults to "Parkes (Consensus) Error Grid
+#' for Type [type] Diabetes".
+#' @param xlab The x-axis label. Defaults to "Reference Glucose
+#' Concentration (mg/dL)".
+#' @param ylab The y-axis label. Defaults to "Test Glucose Concentration
+#' (mg/dL)".
+#' @param linesize The size to be used when drawing the zone lines. The
+#' acceptable values are the same as for \code{\link[ggplot2]{geom_segment}}.
+#' The default is 0.5.
+#' @param linetype The type of line to be used when drawing the zone lines. The
+#' acceptable values are the same as for \code{\link[ggplot2]{geom_segment}}.
+#' The default is "solid".
+#' @param linecolor The color of the zone lines. The acceptable values are the
+#' same as for \code{\link[ggplot2]{geom_segment}}.
+#' The default is "black".
+#' @param linealpha The alpha (transparency) level to be used when drawing
+#' the zone lines. The acceptable values are the same as for
+#' \code{\link[ggplot2]{geom_segment}}. The default is 0.6.
+#' @param pointsize The size to be used when plotting the glucose data points.
+#' The acceptable values are the same as for \code{\link[ggplot2]{geom_point}}.
+#' The default is 2.
+#' @param pointalpha The alpha (transparency) level to be used when plotting
+#' the glucose data points. The acceptable values are the same as for
+#' \code{\link[ggplot2]{geom_point}}. The default is 1.
 #' @param zones An optional character vector specifying the Clarke zones
 #' for each paired value. If this is not supplied, \code{\link{getClarkeZones}}
 #' will be called to generate zone labels.
+#' @return A \code{\link[ggplot2]{ggplot}} object is returned. If the return
+#' value is not assigned, a plot is drawn.
+#' @seealso
+#' \code{\link{getParkesZones}} \code{\link[ggplot2]{ggplot}}
 #' @references
 #' Parkes, J. L., S. L. Slatin, S. Pardo, and B. H. Ginsberg. “A New Consensus
 #' Error Grid to Evaluate the Clinical Significance of Inaccuracies in the
@@ -141,47 +227,99 @@ plotClarkeGrid <- function(reference_vals, test_vals, zones=NA) {
 #' Pfützner, Andreas, David C. Klonoff, Scott Pardo, and
 #' Joan L. Parkes. “Technical Aspects of the Parkes Error Grid.” Journal of
 #' Diabetes Science and Technology 7, no. 5 (September 2013): 1275–81.
-plotParkesGrid <- function(reference_vals, test_vals, zones=NA) {
+plotParkesGrid <- function(referenceVals, testVals, type=1,
+                           title=NA,
+                           xlab="Reference Glucose Concentration (mg/dL)",
+                           ylab="Test Glucose Concetration (mg/dL)",
+                           linesize=0.5,
+                           linetype="solid",
+                           linecolor="black",
+                           linealpha=0.6,
+                           pointsize=2,
+                           pointalpha=1,
+                           zones=NA) {
+
+  if (type != 1 & type != 2)
+    stop("'type' must be 1 or 2.")
+
+  if (is.na(title))
+    title <- paste("Parkes (Consensus) Error Grid for Type", type,
+                   "Diabetes")
 
   # use default zone assignment if none is provided
   if (is.na(zones))
-    zones <- getParkesZones(reference_vals, test_vals)
+    zones <- getParkesZones(referenceVals, testVals, type)
 
   # create a df for ggplot
-  data <- data.frame("ref"=reference_vals, "test"=test_vals, "zones"=zones)
+  data <- data.frame("ref"=referenceVals, "test"=testVals, "zones"=zones)
 
-  # zone B upper
+  # zone B upper, Type 1
   # 0/50->30/50->140/170->280/380->5000/5729.3
   bu_coords <- list(c(0,50), c(30, 50), c(140, 170),
                     c(280, 380), c(5000, 5729.3))
 
-  # zone B lower
+  # zone B upper, Type 2
+  # 0/50->30/50->230/330->440/550
+  if (type == 2)
+    bu_coords <- list(c(0,50), c(30,50), c(230,330), c(5000,5327.14))
+
+  # zone B lower, Type 1
   # 50/0->50/30->170/145->385/300->5000/4495.45
   bl_coords <- list(c(50,0), c(50,30), c(170,145),
                     c(385,300), c(5000, 4495.45))
 
-  # zone C upper
+  # zone B lower, Type 2
+  # 50/0->50/30->90/80->330/230->550/450
+  if (type == 2)
+    bl_coords <- list(c(50,0), c(50,30), c(90,80), c(330,230), c(5000,4900))
+
+  # zone C upper, Type 1
   # 0/60->30/60->50/80->70/110->5000/11526.84
   cu_coords <- list(c(0,60), c(30,60), c(50,80),
                     c(70,110), c(5000, 11526.84))
 
-  # zone C lower
+  # zone C upper, Type 2
+  # 0/60->30/60->280/550
+  if (type == 2)
+    cu_coords <- list(c(0,60), c(30,60), c(5000,9801.2))
+
+  # zone C lower, Type 1
   # 120/0->120/30->260/130->5000/2091.38
   cl_coords <- list(c(120,0), c(120,30), c(260,130),
                     c(5000, 2091.38))
 
-  # zone D upper
+  # zone C lower, Type 2
+  # 90/0->260/130->550/250
+  if (type == 2)
+    cl_coords <- list(c(90,0), c(260,130), c(5000,2091.38))
+
+  # zone D upper, Type 1
   # 0/100->25/100->50/125->80/215->5000/36841.67
   du_coords <- list(c(0,100), c(25,100), c(50,125),
                     c(80,215), c(5000,36841.67))
 
-  # zone D lower
+  # zone D upper, Type 2
+  # 0/80->25/80->35/90->125/550
+  if (type == 2)
+    du_coords <- list(c(0,80), c(25,80), c(35,90), c(5000,25466.67))
+
+  # zone D lower, Type 1
   # 250/0->250/40->5000/1781.67
   dl_coords <- list(c(250,0), c(250,40), c(5000,1781.67))
 
-  # zone E upper
+  # zone D lower, Type 2
+  # 250/0->250/40->410/110->550/160
+  if (type == 2)
+    dl_coords <- list(c(250,0), c(250,40), c(410,110), c(5000,1749.28))
+
+  # zone E upper, Type 1
   # 0/150->35/155->5000/130900
   eu_coords <- list(c(0,150), c(35,155), c(5000,130900))
+
+  # zone E upper, Type 2
+  # 0/200->35/200->50/550
+  if (type == 2)
+    eu_coords <- list(c(0,200), c(35,200), c(5000,116050))
 
   label_list <- list(c(320,320,"A"), c(220,360,"B"),
                      c(385,235,"B"), c(140,375,"C"),
@@ -202,16 +340,16 @@ plotParkesGrid <- function(reference_vals, test_vals, zones=NA) {
                                 expand=c(0, 0)) +
 
     # color by zone
-    geom_point(aes(color=zones)) +
+    geom_point(aes(color=zones), size=pointsize, alpha=pointalpha) +
 
     # draw zone lines
-    annotate_lines(bu_coords) +
-    annotate_lines(bl_coords) +
-    annotate_lines(cu_coords) +
-    annotate_lines(cl_coords) +
-    annotate_lines(du_coords) +
-    annotate_lines(dl_coords) +
-    annotate_lines(eu_coords) +
+    annotate_lines(bu_coords, linesize, linetype, linecolor, linealpha) +
+    annotate_lines(bl_coords, linesize, linetype, linecolor, linealpha) +
+    annotate_lines(cu_coords, linesize, linetype, linecolor, linealpha) +
+    annotate_lines(cl_coords, linesize, linetype, linecolor, linealpha) +
+    annotate_lines(du_coords, linesize, linetype, linecolor, linealpha) +
+    annotate_lines(dl_coords, linesize, linetype, linecolor, linealpha) +
+    annotate_lines(eu_coords, linesize, linetype, linecolor, linealpha) +
 
     # zone text labels
     annotate_labels(label_list, size=6) +
@@ -221,14 +359,18 @@ plotParkesGrid <- function(reference_vals, test_vals, zones=NA) {
     annotate("text", x = 550, y = 0, size=6, label = "") +
 
     theme_bw() +
-    theme(legend.position="none")
+    theme(legend.position="none") +
+    ggtitle(title) +
+    xlab(xlab) +
+    ylab(ylab)
 
   peg
 
 }
 
 
-annotate_lines <- function(xy_list, alpha=0.6) {
+annotate_lines <- function(xy_list, size=0.5, type="solid",
+                           color="black", alpha=0.6) {
 
   lines <- length(xy_list)-1
 
@@ -240,7 +382,8 @@ annotate_lines <- function(xy_list, alpha=0.6) {
     xy2 <- xy_list[[i+1]]
 
     segs[[i]] <- annotate("segment", x=xy1[1], y=xy1[2], xend=xy2[1],
-                        yend=xy2[2], alpha=alpha)
+                        yend=xy2[2], size=size, linetype=type,
+                        color=color, alpha=alpha)
 
   }
 
