@@ -142,6 +142,9 @@ plotClarkeGrid <- function(referenceVals, testVals,
                       c(350,130,"D"), c(35,300,"E"),
                       c(350,35,"E"))
 
+  # to appease CRAN
+  ref <- test <- NULL
+
   ceg <- ggplot(data, aes(x=ref, y=test)) +
 
     # label the clinially relevant levels
@@ -361,6 +364,9 @@ plotParkesGrid <- function(referenceVals, testVals, type=1,
                      c(385,235,"B"), c(140,375,"C"),
                      c(405,145,"C"), c(415,50,"D"),
                      c(75,383,"D"), c(21,383,"E"))
+
+  # to appease CRAN
+  ref <- test <- NULL
 
   peg <- ggplot(data, aes(x=ref, y=test)) +
 
