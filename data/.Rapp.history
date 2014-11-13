@@ -1,0 +1,2 @@
+load("/Users/daniel/Desktop/Dropbox/Work Projects/ega/data/glucose_data.RData")
+glucose_data
