@@ -59,8 +59,17 @@ getClarkeZones <- function(referenceVals, testVals) {
   eq1 <- (7/5)*(referenceVals-130)
   eq2 <- referenceVals+110
 
-  # zone A: are <= 20  or (ref < 70 and test < 70)
-  zoneA <- (are <= 20) | (referenceVals < 70 & testVals < 70)
+  # zone D: ref < 70 and (test > 70 and test < 180) or
+  #   ref > 240 and (test > 70 and test < 180)
+  test_ok <- testVals > 70 & testVals < 180
+  zoneD <- (referenceVals < 70 & test_ok) | (referenceVals > 240 & test_ok)
+
+  zones[zoneD] <- "D"
+
+  # assign A after D, since part of A will overwrite D
+
+  # zone A: are <= 20  or (ref < 58.3 and test < 70)
+  zoneA <- (are <= 20) | (referenceVals < 58.3 & testVals < 70)
 
   zones[zoneA] <- "A"
 
@@ -70,12 +79,7 @@ getClarkeZones <- function(referenceVals, testVals) {
 
   zones[zoneE] <- "E"
 
-  # zone D: ref < 70 and (test > 70 and test < 180) or
-  #   ref > 240 and (test > 70 and test < 180)
-  test_ok <- testVals > 70 & testVals < 180
-  zoneD <- (referenceVals < 70 & test_ok) | (referenceVals > 240 & test_ok)
 
-  zones[zoneD] <- "D"
 
   # zone C: (ref >= 130 and ref <= 180 and test < eq1) or
   #   (ref > 70 and ref > 180 and ref > eq2)

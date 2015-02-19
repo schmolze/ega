@@ -90,12 +90,13 @@ plotClarkeGrid <- function(referenceVals, testVals,
   maxA <- max(zoneA[["ref"]])
 
   # calculate line for zone A upper
-  x1 <- 70
-  y1 <- 84
+  # A upper starts at (58 1/3, 70)
+  x1 <- 58.3
+  y1 <- 70
   x2 <- maxA
   y2 <- maxA+tolerance*maxA
   slope_Au <- (y2-y1)/(x2-x1) # rise over run!
-  intercept_Au <- (-70*slope_Au)+84
+  intercept_Au <- (-58.3*slope_Au)+70
 
   # choose large x,y end values so line goes off the chart
   xend_Au <- 5000
@@ -130,8 +131,8 @@ plotClarkeGrid <- function(referenceVals, testVals,
   eu_coords <- list(c(0,180), c(70,180), c(70,Inf))
   el_coords <- list(c(180,0), c(180,70), c(Inf,70))
   dr_coords <- list(c(240,70), c(240,180), c(Inf,180))
-  dl_coords <- list(c(0,70), c(70,70), c(70,180), c(0,180))
-  au_coords <- list(c(70,84), c(xend_Au,yend_Au))
+  dl_coords <- list(c(0,70), c(58.3,70), c(70,84), c(70,180), c(0,180))
+  au_coords <- list(c(58.3,70), c(xend_Au,yend_Au))
   al_coords <- list(c(70,0), c(70,56), c(xend_Al,yend_Al))
   cl_coords <- list(c(130,0), c(180,70))
   cu_coords <- list(c(70,180), c(xend_Cu,yend_Cu))

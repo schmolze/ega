@@ -1,6 +1,6 @@
 Package: ega
 Title: Error Grid Analysis
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: c(
     person("Daniel", "Schmolze",
     email="ega@schmolze.com", role=c("aut", "cre"))
