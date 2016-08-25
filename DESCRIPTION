@@ -1,17 +1,21 @@
 Package: ega
 Title: Error Grid Analysis
-Version: 1.0.1
+Version: 1.9.5
 Authors@R: c(
     person("Daniel", "Schmolze",
-    email="ega@schmolze.com", role=c("aut", "cre"))
+    email="ega@schmolze.com", role=c("aut", "cre")),
+    person("Sergei", "Mihhailov",
+    email="smihhailov1@sheffield.ac.uk", role=c("con"))
     )
 Maintainer: Daniel Schmolze <ega@schmolze.com>
 Description: Functions for assigning Clarke or Parkes (Consensus) error grid
-    zones to blood glucose values, and for plotting both types of error grids.
+    zones to blood glucose values, and for plotting both types of error grids
+    in both mg/mL and mmol/L units.
 Depends:
     R (>= 2.14.0)
 Imports:
     ggplot2
+    mgcv
 Suggests:
     knitr
 License: MIT + file LICENSE

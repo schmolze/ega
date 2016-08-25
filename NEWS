@@ -1,3 +1,15 @@
+Version 1.9.5
+
+- Functionality is expanded by introducing mmol/L units in addition to mg/dL.
+
+- Graphical component rewritten to utilize updated ggplot2 syntax.
+
+- Fixed bug in Parkes error grid with zone B datapoints emerging instead of D when test concentration is 70 mg/dl and reference is low.
+
+- Fixed bug in Parkes error grid with zone A datapoints being labelled as B near lower B zone limit.
+
+- Fixed bug in Parkes error grid with zone A datapoints being labelled as C near upper C zone limit. 
+
 Version 1.0.1
 
 - Fixed bug in zone A and zone D grid drawing (thanks to Wayne Menzie)
