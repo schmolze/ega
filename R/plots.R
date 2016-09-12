@@ -65,128 +65,121 @@
 #' Clarke, W. L., D. Cox, L. A. Gonder-Frederick, W. Carter, and S. L. Pohl.
 #' "Evaluating Clinical Accuracy of Systems for Self-Monitoring of Blood
 #' Glucose." Diabetes Care 10, no. 5 (September 1, 1987): 622-28.
-plotClarkeGrid <- function(referenceVals, testVals,
-                           title="Clarke Error Grid",
-                           xlab="Reference Glucose Concentration (mg/dL)",
-                           ylab="Test Glucose Concentration (mg/dL)",
-                           linesize=0.5,
-                           linetype="solid",
-                           linecolor="black",
-                           linealpha=0.6,
-                           pointsize=2,
-                           pointalpha=1,
-                           zones=NA) {
+plotClarkeGrid <- function (referenceVals, testVals, title = "Clarke Error Grid", xlab="", ylab="",
+                            linesize = 0.5, linetype = "solid", linecolor = "black",
+                            linealpha = 0.6, pointsize = 2, pointalpha = 1, zones = NA, unit='gram')
+{
+  #unit selection and control
+  if (unit != "mol" & unit != "gram") {
+    stop("'unit' must be either 'mol' or 'gram'.")
+  }
+  #axis named depending on unit
+  if (unit == "mol") {
+    n <- 18 #where n is a scaling factor for unit conversion
+    if (xlab==""){
+      xlab="Reference Glucose Concentration (mmol/L)"
+    }
+    if (ylab==""){
+      ylab="Test Glucose Concentration (mmol/L)"
+    }
+  } else {
+    n <- 1
+    if (xlab==""){
+      xlab="Reference Glucose Concentration (mg/dL)"
+    }
+    if (ylab==""){
+      ylab="Test Glucose Concentration (mg/dL)"
+    }
+  }
 
   # use default zone assignment if none is provided
-  if (is.na(zones))
-    zones <- getClarkeZones(referenceVals, testVals)
-
+  if (is.na (zones)) {
+    zones <- getClarkeZones (referenceVals, testVals, unit)
+  }
   tolerance <- 0.2
 
   # create a df for ggplot
-  data <- data.frame("ref"=referenceVals, "test"=testVals, "zones"=zones)
+  data <- data.frame (ref=referenceVals, test=testVals, zones=zones)
 
-  zoneA <- subset(data, zones=="A")
-  maxA <- max(zoneA[["ref"]])
+  #better solution for scaling axis automatically with some extra space
+  maxX <- max (max (data$ref) + 20 / n, 550 / n)
+  maxY <- max ( (data$test + 20 / n), (1 + tolerance) * maxX, 650 / n)
 
-  # calculate line for zone A upper
-  # A upper starts at (58 1/3, 70)
-  x1 <- 58.3
-  y1 <- 70
-  x2 <- maxA
-  y2 <- maxA+tolerance*maxA
-  slope_Au <- (y2-y1)/(x2-x1) # rise over run!
-  intercept_Au <- (-58.3*slope_Au)+70
+  #labels with coordinats and colors
+  labels <- data.frame (x=c (240 / n, 120 / n, 350 / n, 120 / n, 163 / n,
+                             35 / n, 350 / n, 35 / n, 350 / n),
+                        y=c (230 / n, 200 / n, 230 / n, 300 / n, 20 / n,
+                             130 / n, 130 / n, 300 / n, 35 / n),
+                        label=c ("A", "B", "B", "C", "C", "D", "D", "E", "E"),
+                        color=c ("blue", "blue", "blue", "blue", "blue",
+                                 "red", "red", "red", "red"))
 
-  # choose large x,y end values so line goes off the chart
-  xend_Au <- 5000
-  yend_Au <- slope_Au*5000+intercept_Au # y=mx+b
+  #segment endpoints for borders
+  border <- data.frame (x1=c (58.3 / n, 70 / n, 70 / n, 70 / n, 0, 240 / n,
+                              0, 70 / n, 180 / n, 240 / n, 180 / n, 130 / n),
+                        y1=c (70 / n, 56 / n, 180 / n, 83 / n, 180 / n,
+                              180 / n, 70 / n, 0, 70 / n, 70 / n, 0, 0),
+                        xend=c (maxX, maxX, 550 / n, 70 / n, 70 / n, maxX,
+                                58.3 / n, 70 / n, maxX, 240 / n,
+                                180 / n, 180 / n),
+                        yend=c ((1 + tolerance) * maxX, (1 - tolerance) * maxX,
+                                660 / n, maxY, 180 / n, 180 / n, 70 / n,
+                                56 / n, 70 / n, 180 / n, 70 / n, 70 / n))
 
-  # calculate line for zone A lower
-  x1 <- 70
-  y1 <- 56
-  x2 <- maxA
-  y2 <- maxA-tolerance*maxA
-  slope_Al <- (y2-y1)/(x2-x1)
-  intercept_Al <- (-70*slope_Al)+56
-
-  # choose large x,y end values so line goes off the chart
-  xend_Al <- 5000
-  yend_Al <- slope_Al*5000+intercept_Al
-
-  # zone C upper
-  x1 <- 70
-  y1 <- 180
-  slope_Cu <- 1
-  intercept_Cu <- (-70*slope_Cu)+180
-
-  # intersection of C upper and A upper
-  # C upper: y = ax+c
-  # A upper: y = bx+d
-
-  # intersection: (d-c)/(a-b), (ad-bc)/(a-b)
-  xend_Cu <- (intercept_Au-intercept_Cu)/(slope_Cu-slope_Au)
-  yend_Cu <- ((slope_Cu*intercept_Au)-(slope_Au*intercept_Cu))/(slope_Cu-slope_Au)
-
-  eu_coords <- list(c(0,180), c(70,180), c(70,Inf))
-  el_coords <- list(c(180,0), c(180,70), c(Inf,70))
-  dr_coords <- list(c(240,70), c(240,180), c(Inf,180))
-  dl_coords <- list(c(0,70), c(58.3,70), c(70,84), c(70,180), c(0,180))
-  au_coords <- list(c(58.3,70), c(xend_Au,yend_Au))
-  al_coords <- list(c(70,0), c(70,56), c(xend_Al,yend_Al))
-  cl_coords <- list(c(130,0), c(180,70))
-  cu_coords <- list(c(70,180), c(xend_Cu,yend_Cu))
-
-  labels_list <- list(c(240,230,"A"), c(120,185,"B"),
-                      c(350,230,"B"), c(120,300,"C"),
-                      c(163,20,"C"), c(35,130,"D"),
-                      c(350,130,"D"), c(35,300,"E"),
-                      c(350,35,"E"))
-
-  # to appease CRAN
-  ref <- test <- NULL
-
-  ceg <- ggplot(data, aes(x=ref, y=test)) +
-
-    # label the clinially relevant levels
-    scale_x_continuous(breaks=c(70, 100, 150, 180, 240, 300, 350, 400, 450,
-                                         500, 550, 600, 650, 700, 750, 800,
-                                         850, 900, 950, 1000),
-                       expand = c(0,0)) +
-
-    scale_y_continuous(breaks=c(70, 100, 150, 180, 250, 300, 350, 400, 450,
-                                         500, 550, 600, 650, 700, 750, 800,
-                                         850, 900, 950, 1000),
-                       expand=c(0, 0)) +
-
-    # color by location type
-    geom_point(aes(color=zones), size=pointsize, alpha=pointalpha) +
-
-    # draw zone lines
-    annotate_lines(eu_coords, linesize, linetype, linecolor, linealpha) +
-    annotate_lines(el_coords, linesize, linetype, linecolor, linealpha) +
-    annotate_lines(dr_coords, linesize, linetype, linecolor, linealpha) +
-    annotate_lines(dl_coords, linesize, linetype, linecolor, linealpha) +
-    annotate_lines(au_coords, linesize, linetype, linecolor, linealpha) +
-    annotate_lines(al_coords, linesize, linetype, linecolor, linealpha) +
-    annotate_lines(cl_coords, linesize, linetype, linecolor, linealpha) +
-    annotate_lines(cu_coords, linesize, linetype, linecolor, linealpha) +
-
-    # now add the zone text labels
-    annotate_labels(labels_list) +
-
-    # dummy values to expand right and top
-    annotate("text", x = 0, y = 350, size=6, label = "") +
-    annotate("text", x = 400, y = 0, size=6, label = "") +
-
-    theme_bw() +
-    theme(legend.position="none") +
-    ggtitle(title) +
-    xlab(xlab) +
-    ylab(ylab)
-
+  ceg <- ggplot(data, aes(x = ref, y = test)) +
+    scale_x_continuous (breaks = c (round (70 / n, digits=1),
+                                    round (100 / n, digits=1),
+                                    round (150 / n, digits=1),
+                                    round (180 / n, digits=1),
+                                    round (240 / n, digits=1),
+                                    round (300 / n, digits=1),
+                                    round (350 / n, digits=1),
+                                    round (400 / n, digits=1),
+                                    round (450 / n, digits=1),
+                                    round (500 / n, digits=1),
+                                    round (550 / n, digits=1),
+                                    round (600 / n, digits=1),
+                                    round (650 / n, digits=1),
+                                    round (700 / n, digits=1),
+                                    round (750 / n, digits=1),
+                                    round (800 / n, digits=1),
+                                    round (850 / n, digits=1),
+                                    round (900 / n, digits=1),
+                                    round (950 / n, digits=1),
+                                    round (1000 / n, digits=1)),
+                        expand = c (0, 0)) +
+    scale_y_continuous (breaks = c (round (70 / n, digits=1),
+                                    round (100 / n, digits=1),
+                                    round (150 / n, digits=1),
+                                    round (180 / n, digits=1),
+                                    round (240 / n, digits=1),
+                                    round (300 / n, digits=1),
+                                    round (350 / n, digits=1),
+                                    round (400 / n, digits=1),
+                                    round (450 / n, digits=1),
+                                    round (500 / n, digits=1),
+                                    round (550 / n, digits=1),
+                                    round (600 / n, digits=1),
+                                    round (650 / n, digits=1),
+                                    round (700 / n, digits=1),
+                                    round (750 / n, digits=1),
+                                    round (800 / n, digits=1),
+                                    round (850 / n, digits=1),
+                                    round (900 / n, digits=1),
+                                    round (950 / n, digits=1),
+                                    round (1000 / n, digits=1)),
+                        expand = c (0, 0)) +
+    geom_point(aes(color = zones), size = pointsize, alpha = pointalpha) +
+    geom_segment (aes (x = x1, y = y1, xend = xend, yend = yend),
+                  data=border, linetype=linetype) +
+    annotate (geom="text", x = labels$x, y = labels$y, size = 6,
+              label = labels$label, color=labels$color) +
+    theme_bw () +
+    #    theme (legend.position = "none") +
+    ggtitle (title) +
+    xlab (xlab) +
+    ylab (ylab)
   ceg
-
 }
 
 
@@ -267,189 +260,189 @@ plotClarkeGrid <- function(referenceVals, testVals,
 #' Pfutzner, Andreas, David C. Klonoff, Scott Pardo, and Joan L. Parkes.
 #' "Technical Aspects of the Parkes Error Grid." Journal of Diabetes Science
 #' and Technology 7, no. 5 (September 2013): 1275-81
-plotParkesGrid <- function(referenceVals, testVals, type=1,
-                           title=NA,
-                           xlab="Reference Glucose Concentration (mg/dL)",
-                           ylab="Test Glucose Concetration (mg/dL)",
-                           linesize=0.5,
-                           linetype="solid",
-                           linecolor="black",
-                           linealpha=0.6,
-                           pointsize=2,
-                           pointalpha=1,
-                           zones=NA) {
+plotParkesGrid <- function (referenceVals, testVals, type=1, title="", xlab="", ylab="", linesize = 0.5,
+                            linetype = "solid", linecolor = "black", linealpha = 0.6, pointsize = 2, pointalpha = 1, zones = NA, unit='gram') {
 
-  if (type != 1 & type != 2)
+  if (type != 1 & type != 2) {
     stop("'type' must be 1 or 2.")
+  }
+  if (unit != "mol" & unit != "gram") {
+    stop("'unit' must be either 'mol' or 'gram'.")
+  }
+  if (title==""){
+    title <- paste("Parkes (Consensus) Error Grid for Type", type, "Diabetes")
+  }
+  if (unit == "mol") {
+    n <- 18
+    if (xlab==""){
+      xlab="Reference Glucose Concentration (mmol/L)"
+    }
+    if (ylab==""){
+      ylab="Test Glucose Concentration (mmol/L)"
+    }
+  } else {
+    n <- 1
+    if (xlab==""){
+      xlab="Reference Glucose Concentration (mg/dL)"
+    }
+    if (ylab==""){
+      ylab="Test Glucose Concentration (mg/dL)"
+    }
+  }
 
-  if (is.na(title))
-    title <- paste("Parkes (Consensus) Error Grid for Type", type,
-                   "Diabetes")
 
-  # use default zone assignment if none is provided
-  if (is.na(zones))
-    zones <- getParkesZones(referenceVals, testVals, type)
+  if (is.na (zones)) {
+    zones <- getParkesZones (referenceVals, testVals, type, unit)
+  }
 
-  # create a df for ggplot
-  data <- data.frame("ref"=referenceVals, "test"=testVals, "zones"=zones)
+  data <- data.frame (ref=referenceVals, test=testVals, zones=zones)
 
-  # zone B upper, Type 1
-  # 0/50->30/50->140/170->280/380->5000/5729.3
-  bu_coords <- list(c(0,50), c(30, 50), c(140, 170),
-                    c(280, 380), c(5000, 5729.3))
+  maxX <- max (max (data$ref) + 20 / n, 550 / n)#better solution
+  maxY <- max (max (data$test) + 20 / n, 550 / n)
 
-  # zone B upper, Type 2
-  # 0/50->30/50->230/330->440/550
-  if (type == 2)
-    bu_coords <- list(c(0,50), c(30,50), c(230,330), c(5000,5327.14))
+  labels <- data.frame (x=c (320 / n, 220 / n, 385 / n, 140 / n, 405 / n, 415 / n, 75 / n, 21 / n),
+                        y=c (320 / n, 360 / n, 235 / n, 375 / n, 145 / n,  50 / n, 383 / n, 383 / n),
+                        label=c ("A", "B", "B", "C", "C", "D", "D", "E"),
+                        color=c ("green", "blue", "blue", "red", "red", "red", "red", "red"))
 
-  # zone B lower, Type 1
-  # 50/0->50/30->170/145->385/300->5000/4495.45
-  bl_coords <- list(c(50,0), c(50,30), c(170,145),
-                    c(385,300), c(5000, 4495.45))
 
-  # zone B lower, Type 2
-  # 50/0->50/30->90/80->330/230->550/450
-  if (type == 2)
-    bl_coords <- list(c(50,0), c(50,30), c(90,80), c(330,230), c(5000,4900))
+  if (type==1){#type 1 diabetes
+    ce <- coef (35, 155, 50, 550)
+    cdu <- coef (80, 215, 125, 550)
+    cdl <- coef (250, 40, 550, 150)
+    ccu <- coef (70, 110, 260, 550)
+    ccl <- coef (260, 130, 550, 250)
+    cbu <- coef (280, 380, 430, 550)
+    cbl <- coef (385, 300, 550, 450)
+    border <- data.frame (x1=c (0 / n,
+                                0 / n, 30 / n, 140 / n, 280 / n,
+                                50 / n, 50 / n, 170 / n, 385 / n,
+                                0 / n, 30 / n, 50 / n, 70 / n,
+                                120 / n, 120 / n, 260 / n,
+                                0 / n, 25 / n, 50 / n, 80 / n,
+                                250 / n, 250 / n,
+                                0 / n, 35 / n),
+                          y1=c (0 / n,
+                                50 / n, 50 / n, 170 / n, 380 / n,
+                                0 / n, 30 / n, 145 / n, 300 / n,
+                                60 / n, 60 / n, 80 / n, 110 / n,
+                                0 / n, 30 / n, 130 / n,
+                                100 / n, 100 / n, 125 / n, 215 / n,
+                                0 / n, 40 / n,
+                                150 / n, 155 / n),
+                          xend=c (min (maxX, maxY),
+                                  30 / n, 140 / n, 280 / n, endx (280 / n, 380 / n, maxY, cbu),
+                                  50 / n, 170 / n, 385 / n, maxX,
+                                  30 / n, 50 / n, 70 / n, endx (70 / n, 110 / n, maxY, ccu),
+                                  120 / n, 260 / n, maxX,
+                                  25 / n, 50 / n, 80 / n, endx (80 / n, 215 / n, maxY, cdu),
+                                  250 / n, maxX,
+                                  35 / n, endx (35 / n, 155 / n, maxY, ce) ),
+                          yend=c (min (maxX, maxY),
+                                  50 / n, 170 / n, 380 / n, maxY,
+                                  30 / n, 145 / n, 300 /n, endy (385 / n, 300 / n, maxX, cbl),
+                                  60 / n, 80 / n, 110 / n, maxY,
+                                  30 / n, 130 / n, endy (260 / n, 130 / n, maxX, ccl),
+                                  100 / n, 125 / n, 215 / n, maxY,
+                                  40 / n, endy (410 / n, 110 / n, maxX, cdl),
+                                  155 / n, maxY))
 
-  # zone C upper, Type 1
-  # 0/60->30/60->50/80->70/110->5000/11526.84
-  cu_coords <- list(c(0,60), c(30,60), c(50,80),
-                    c(70,110), c(5000, 11526.84))
+  } else {#type 2 diabetes
+    ce <- coef (35, 200, 50, 550)
+    cdu <- coef (35, 90, 125, 550)
+    cdl <- coef (410, 110, 550, 160)
+    ccu <- coef (30, 60, 280, 550)
+    ccl <- coef (260, 130, 550, 250)
+    cbu <- coef (230, 330, 440, 550)
+    cbl <- coef (330, 230, 550, 450)
 
-  # zone C upper, Type 2
-  # 0/60->30/60->280/550
-  if (type == 2)
-    cu_coords <- list(c(0,60), c(30,60), c(5000,9801.2))
+    border <- data.frame (x1=c (0 / n,
+                                0 / n, 30 / n, 230 / n,
+                                50 / n, 50 / n, 90 / n, 330 / n,
+                                0 / n, 30 / n,
+                                90 / n, 260 / n,
+                                0 / n, 25 / n, 35 / n,
+                                250 / n, 250 / n, 410 / n,
+                                0 / n, 35 / n),
+                          y1=c (0 / n,
+                                50 / n, 50 / n, 330 / n,
+                                0 / n, 30 / n, 80 / n, 230 / n,
+                                60 / n, 60 / n,
+                                0 / n, 130 / n,
+                                80 / n, 80 / n, 90 / n,
+                                0 / n, 40 / n, 110 / n,
+                                200 / n, 200 / n),
+                          xend=c (min (maxX, maxY),
+                                  30 / n, 230 / n, endx (230 / n, 330 / n, maxY, cbu),
+                                  50 / n, 90 / n, 330 / n, maxX,
+                                  30 / n, endx (30 / n, 60 / n, maxY, ccu),
+                                  260 / n, maxX,
+                                  25 / n, 35 / n, endx (35 / n, 90 / n, maxY, cdu),
+                                  250 / n, 410 / n, maxX,
+                                  35 / n, endx (35 / n, 200 / n, maxY, ce) ),
+                          yend=c (min (maxX, maxY),
+                                  50 / n, 330 / n, maxY,
+                                  30 / n, 80 / n, 230 / n, endy (330 / n, 230 / n, maxX, cbl),
+                                  60 / n, maxY,
+                                  130 / n, endy (260 / n, 130 / n, maxX, ccl),
+                                  80 / n, 90 / n, maxY,
+                                  40 / n, 110 / n, endy (410 / n, 110 / n, maxX, cdl),
+                                  200 / n, maxY))
 
-  # zone C lower, Type 1
-  # 120/0->120/30->260/130->5000/2091.38
-  cl_coords <- list(c(120,0), c(120,30), c(260,130),
-                    c(5000, 2091.38))
+  }
 
-  # zone C lower, Type 2
-  # 90/0->260/130->550/250
-  if (type == 2)
-    cl_coords <- list(c(90,0), c(260,130), c(5000,2091.38))
-
-  # zone D upper, Type 1
-  # 0/100->25/100->50/125->80/215->5000/36841.67
-  du_coords <- list(c(0,100), c(25,100), c(50,125),
-                    c(80,215), c(5000,36841.67))
-
-  # zone D upper, Type 2
-  # 0/80->25/80->35/90->125/550
-  if (type == 2)
-    du_coords <- list(c(0,80), c(25,80), c(35,90), c(5000,25466.67))
-
-  # zone D lower, Type 1
-  # 250/0->250/40->5000/1781.67
-  dl_coords <- list(c(250,0), c(250,40), c(5000,1781.67))
-
-  # zone D lower, Type 2
-  # 250/0->250/40->410/110->550/160
-  if (type == 2)
-    dl_coords <- list(c(250,0), c(250,40), c(410,110), c(5000,1749.28))
-
-  # zone E upper, Type 1
-  # 0/150->35/155->5000/130900
-  eu_coords <- list(c(0,150), c(35,155), c(5000,130900))
-
-  # zone E upper, Type 2
-  # 0/200->35/200->50/550
-  if (type == 2)
-    eu_coords <- list(c(0,200), c(35,200), c(5000,116050))
-
-  label_list <- list(c(320,320,"A"), c(220,360,"B"),
-                     c(385,235,"B"), c(140,375,"C"),
-                     c(405,145,"C"), c(415,50,"D"),
-                     c(75,383,"D"), c(21,383,"E"))
-
-  # to appease CRAN
-  ref <- test <- NULL
-
-  peg <- ggplot(data, aes(x=ref, y=test)) +
-
-    # label the clinially relevant levels
-    scale_x_continuous(breaks=c(0, 50, 100, 150, 200, 250, 300, 350, 400,
-                                         450, 500, 550, 600, 650, 700, 750, 800,
-                                         850, 900, 950, 1000),
-                                expand = c(0,0)) +
-
-    scale_y_continuous(breaks=c(0, 50, 100, 150, 200, 250, 300, 350, 400,
-                                         450, 500, 550, 600, 650, 700, 750, 800,
-                                         850, 900, 950, 1000),
-                                expand=c(0, 0)) +
-
-    # color by zone
-    geom_point(aes(color=zones), size=pointsize, alpha=pointalpha) +
-
-    # draw zone lines
-    annotate_lines(bu_coords, linesize, linetype, linecolor, linealpha) +
-    annotate_lines(bl_coords, linesize, linetype, linecolor, linealpha) +
-    annotate_lines(cu_coords, linesize, linetype, linecolor, linealpha) +
-    annotate_lines(cl_coords, linesize, linetype, linecolor, linealpha) +
-    annotate_lines(du_coords, linesize, linetype, linecolor, linealpha) +
-    annotate_lines(dl_coords, linesize, linetype, linecolor, linealpha) +
-    annotate_lines(eu_coords, linesize, linetype, linecolor, linealpha) +
-
-    # zone text labels
-    annotate_labels(label_list, size=6) +
-
-    # dummy values to force minimum size
-    annotate("text", x = 0, y = 550, size=6, label = "") +
-    annotate("text", x = 550, y = 0, size=6, label = "") +
-
-    theme_bw() +
-    theme(legend.position="none") +
-    ggtitle(title) +
-    xlab(xlab) +
-    ylab(ylab)
-
+  peg <- ggplot(data, aes(x = ref, y = test)) +
+    scale_x_continuous (breaks = c (round (70 / n, digits=1),
+                                    round (100 / n, digits=1),
+                                    round (150 / n, digits=1),
+                                    round (180 / n, digits=1),
+                                    round (240 / n, digits=1),
+                                    round (300 / n, digits=1),
+                                    round (350 / n, digits=1),
+                                    round (400 / n, digits=1),
+                                    round (450 / n, digits=1),
+                                    round (500 / n, digits=1),
+                                    round (550 / n, digits=1),
+                                    round (600 / n, digits=1),
+                                    round (650 / n, digits=1),
+                                    round (700 / n, digits=1),
+                                    round (750 / n, digits=1),
+                                    round (800 / n, digits=1),
+                                    round (850 / n, digits=1),
+                                    round (900 / n, digits=1),
+                                    round (950 / n, digits=1),
+                                    round (1000 / n, digits=1)),
+                        expand = c (0, 0)) +
+    scale_y_continuous (breaks = c (round (70 / n, digits=1),
+                                    round (100 / n, digits=1),
+                                    round (150 / n, digits=1),
+                                    round (180 / n, digits=1),
+                                    round (240 / n, digits=1),
+                                    round (300 / n, digits=1),
+                                    round (350 / n, digits=1),
+                                    round (400 / n, digits=1),
+                                    round (450 / n, digits=1),
+                                    round (500 / n, digits=1),
+                                    round (550 / n, digits=1),
+                                    round (600 / n, digits=1),
+                                    round (650 / n, digits=1),
+                                    round (700 / n, digits=1),
+                                    round (750 / n, digits=1),
+                                    round (800 / n, digits=1),
+                                    round (850 / n, digits=1),
+                                    round (900 / n, digits=1),
+                                    round (950 / n, digits=1),
+                                    round (1000 / n, digits=1)),
+                        expand = c (0, 0)) +
+    geom_point(aes(color = zones), size=pointsize, alpha=pointalpha) +
+    geom_segment (aes (x=x1, y=y1, xend=xend, yend=yend), data=border, linetype=linetype) +
+    annotate (geom="text", x=labels$x, y=labels$y, size=6, label=labels$label, color=labels$color) +
+    theme_bw () +
+    #    theme (legend.position = "none") +
+    ggtitle (title) +
+    xlab (xlab) +
+    ylab (ylab)
   peg
-
 }
 
 
-annotate_lines <- function(xy_list, size=0.5, type="solid",
-                           color="black", alpha=0.6) {
-
-  lines <- length(xy_list)-1
-
-  segs <- vector(mode="list", length=lines)
-
-  for (i in 1:lines) {
-
-    xy1 <- xy_list[[i]]
-    xy2 <- xy_list[[i+1]]
-
-    segs[[i]] <- annotate("segment", x=xy1[1], y=xy1[2], xend=xy2[1],
-                        yend=xy2[2], size=size, linetype=type,
-                        color=color, alpha=alpha)
-
-  }
-
-  segs
-
-}
-
-
-annotate_labels <- function(label_list, size=6) {
-
-  lbls <- vector(mode="list", length=length(label_list))
-
-  for (i in 1:length(lbls)) {
-
-    lbl <- label_list[[i]]
-    x <- as.numeric(lbl[1])
-    y <- as.numeric(lbl[2])
-    txt <- lbl[3]
-
-    lbls[[i]] <- annotate("text", x=x, y=y, size=size, label=txt)
-
-  }
-
-  lbls
-
-}
