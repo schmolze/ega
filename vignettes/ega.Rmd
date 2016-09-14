@@ -47,10 +47,18 @@ The Clarke error grid, while based on sound clinical reasoning, contains arbitra
 
 **ega** provides two basic functions for both Clarke and Parkes error grids. The first assigns zones ("A", "B", "C", "D" or "E") to paired reference/glucose values, while the second plots the respective error grids using the `ggplot` package.
 
-The built-in dataset `glucose_data` contains sample paired glucose values for 5072 patients. The function `getClarkeZones` will assign Clarke zones:
+The built-in dataset `glucose_data` contains sample paired glucose values (in mg/dl) for 5072 patients. The function `getClarkeZones` will assign Clarke zones:
 
 ```{r}
 zones <- getClarkeZones(glucose_data$ref, glucose_data$test)
+
+head(zones)
+```
+
+If units of mmol/l are desired, this can be achieved with the `unit` parameter. If using the built-in dataset, the data will first need to be divided by 18.
+
+```{r}
+zones <- getClarkeZones(glucose_data$ref/18, glucose_data$test/18, unit="mol")
 
 head(zones)
 ```
@@ -67,7 +75,7 @@ table(zones)
 table(zones)/length(zones)*100
 ```
 
-For this particular dataset, 71.6+23+1 = 95.6% of pairs fall within the clinically acceptable zones A-C. 
+For this particular dataset, 72+23+1 = 96% of pairs fall within the clinically acceptable zones A-C. 
 
 Let's plot the data on a Clarke error grid using the function `plotClarkeGrid`:
 
@@ -116,6 +124,12 @@ plotParkesGrid(glucose_data$ref, glucose_data$test)
 ```
 
 A similar set of arguments can be specified to control basic plotting properties, and the return value can likewise be stored and modified.
+
+Units of `mmol/l` can be used in the plotting functions as well.
+
+```{r}
+plotParkesGrid(glucose_data$ref/18, glucose_data$test/18, unit="mol")
+```
 
 # Wrapping up
 

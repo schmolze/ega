@@ -35,6 +35,8 @@ NULL
 #' @param testVals A vector of glucose values obtained via a non-reference
 #' method (e.g. a new meter). The values in this vector are paired with those
 #' in \code{referenceVals}, so the length should be the same.
+#' @param unit A string specifying the units of measurement. This should be either
+#' \code{"gram"} (the default) for \code{mg/dl} or \code{"mol"} for \code{mmol/l}.
 #' @return A character vector is returned, with each element being one of
 #' \code{"A"}, \code{"B"}, \code{"C"}, \code{"D"}, or \code{"E"}.
 #' @examples
@@ -116,6 +118,8 @@ getClarkeZones <- function (referenceVals, testVals, unit="gram"){
 #' in \code{referenceVals}, so the length should be the same.
 #' @param type An integer (1 or 2) specifying whether to obtain zones for Type 1
 #' or Type 2 diabetes. Defaults to 1.
+#' @param unit A string specifying the units of measurement. This should be either
+#' \code{"gram"} (the default) for \code{mg/dl} or \code{"mol"} for \code{mmol/l}.
 #' @return A character vector is returned, with each element being one of
 #' \code{"A"}, \code{"B"}, \code{"C"}, \code{"D"}, or \code{"E"}.
 #' @examples
@@ -135,7 +139,7 @@ getClarkeZones <- function (referenceVals, testVals, unit="gram"){
 #' Pfutzner, Andreas, David C. Klonoff, Scott Pardo, and Joan L. Parkes.
 #' "Technical Aspects of the Parkes Error Grid." Journal of Diabetes Science
 #' and Technology 7, no. 5 (September 2013): 1275-81
-getParkesZones <- function (ref, test, type=1, unit="gram"){
+getParkesZones <- function (referenceVals, testVals, type=1, unit="gram"){
   if (type != 1 & type != 2){
     stop("'type' must be 1 or 2.")
   }
@@ -148,71 +152,53 @@ getParkesZones <- function (ref, test, type=1, unit="gram"){
     n <- 1
   }
 
-  #finding tan coefficient for a line going trough 2 points
-  coef <- function (x, y, xend, yend){
-    if (xend==x) {
-      stop("Vertical line - function inapplicable")
-    }
-    return ( (yend - y) / (xend - x))
-  }
-
-  #setting y axis end point with tan coeff and x endpoint known
-  endy <- function (startx, starty, maxx, coef){
-    return ( (maxx - startx) * coef + starty)
-  }
-
-  #setting x axis end point with tan coeff and y endpoint known
-  endx <- function (startx, starty, maxy, coef){
-    return ( (maxy - starty)  / coef + startx)
-  }
-
   #setting the graph limits with some space to accomondate all the datapoints
-  maxX <- max (max (ref) + 20 / n, 550 / n)#better solution
-  maxY <- max ( (test + 20 / n), maxX, 550 / n)
+  maxX <- max (max (referenceVals) + 20 / n, 550 / n)#better solution
+  maxY <- max ( (testVals + 20 / n), maxX, 550 / n)
 
   #common block
-  testdf <- as.matrix (cbind (as.numeric (ref), as.numeric (test)))
-  zones <- vector (mode = "character", length = length (ref))
-  zones[1:length (ref)] <- "A" #all datapoints are A by default
+  testdf <- as.matrix (cbind (as.numeric (referenceVals), as.numeric (testVals)))
+  zones <- vector (mode = "character", length = length (referenceVals))
+  zones[1:length (referenceVals)] <- "A" #all datapoints are A by default
 
   #diffirenciation by diabites type
   if (type==1){
     #determining line coefficients for final segments
-    ce <- coef (35, 155, 50, 550)
-    cdu <- coef (80, 215, 125, 550)
-    cdl <- coef (250, 40, 550, 150)
-    ccu <- coef (70, 110, 260, 550)
-    ccl <- coef (260, 130, 550, 250)
-    cbu <- coef (280, 380, 430, 550)
-    cbl <- coef (385, 300, 550, 450)
+    ce <- .coef (35, 155, 50, 550)
+    cdu <- .coef (80, 215, 125, 550)
+    cdl <- .coef (250, 40, 550, 150)
+    ccu <- .coef (70, 110, 260, 550)
+    ccl <- .coef (260, 130, 550, 250)
+    cbu <- .coef (280, 380, 430, 550)
+    cbl <- .coef (385, 300, 550, 450)
 
     #diabetes type 1 zones - creates polygons of a size dependent on data
-    limitE1 <- matrix (data= c (0, 35 / n, endx (35 / n, 155 / n, maxY, ce), 0, 0, #x limits E upper
+    limitE1 <- matrix (data= c (0, 35 / n, .endx (35 / n, 155 / n, maxY, ce), 0, 0, #x limits E upper
                                 150 / n, 155 / n, maxY, maxY, 150 / n),#y limits E upper
                        ncol=2, byrow=FALSE)
 
     limitD1L <- matrix (data= c (250 / n, 250 / n, maxX, maxX, 250 / n,#x limits D lower
-                                 0, 40 / n, endy (410 / n, 110 / n, maxX, cdl), 0, 0),#y limits D lower
+                                 0, 40 / n, .endy (410 / n, 110 / n, maxX, cdl), 0, 0),#y limits D lower
                         ncol=2, byrow=FALSE)
 
-    limitD1U <- matrix (data= c (0, 25 / n, 50 / n, 80 / n, endx (80 / n, 215 / n, maxY, cdu), 0, 0,#x limits D upper
+    limitD1U <- matrix (data= c (0, 25 / n, 50 / n, 80 / n, .endx (80 / n, 215 / n, maxY, cdu), 0, 0,#x limits D upper
                                  100 / n, 100 / n, 125 / n, 215 / n , maxY, maxY, 100 / n),#y limits D upper
                         ncol=2, byrow=FALSE)
 
     limitC1L <- matrix (data= c (120 / n, 120 / n, 260 / n, maxX, maxX, 120 / n, #x limits C lower
-                                 0, 30 / n, 130 / n, endy (260 / n, 130 / n, maxX, ccl) , 0, 0),#y limits C lower
+                                 0, 30 / n, 130 / n, .endy (260 / n, 130 / n, maxX, ccl) , 0, 0),#y limits C lower
                         ncol=2, byrow=FALSE)
 
-    limitC1U <- matrix (data= c (0, 30 / n, 50 / n, 70 / n, endx (70 / n, 110 / n, maxY, ccu), 0, 0, #x limits C upper
+    limitC1U <- matrix (data= c (0, 30 / n, 50 / n, 70 / n, .endx (70 / n, 110 / n, maxY, ccu), 0, 0, #x limits C upper
                                  60 / n, 60 / n, 80 / n, 110 / n , maxY, maxY, 60 / n),#y limits C upper
                         ncol=2, byrow=FALSE)
 
     limitB1L <- matrix (data= c (50 / n, 50 / n, 170 / n, 385 / n, maxX, maxX, 50 / n, #x limits B lower
-                                 0, 30 / n, 145 / n, 300 / n , endy (385 / n, 300 / n, maxX, cbl), 0, 0),#y limits B lower
+                                 0, 30 / n, 145 / n, 300 / n , .endy (385 / n, 300 / n, maxX, cbl), 0, 0),#y limits B lower
                         ncol=2, byrow=FALSE)
 
 
-    limitB1U <- matrix (data= c (0, 30 / n, 140 / n, 280 / n, endx (280 / n, 380 / n, maxY, cbu), 0, 0, #x limits B upper
+    limitB1U <- matrix (data= c (0, 30 / n, 140 / n, 280 / n, .endx (280 / n, 380 / n, maxY, cbu), 0, 0, #x limits B upper
                                  50 / n, 50 / n, 170 / n, 380 / n , maxY, maxY, 50 / n),#y limits B upper
                         ncol=2, byrow=FALSE)
 
@@ -226,39 +212,39 @@ getParkesZones <- function (ref, test, type=1, unit="gram"){
     zones[which (in.out (limitE1, testdf))] <- "E"
 
   }else{ #type 2 diabetes
-    ce <- coef (35, 200, 50, 550)
-    cdu <- coef (35, 90, 125, 550)
-    cdl <- coef (410, 110, 550, 160)
-    ccu <- coef (30, 60, 280, 550)
-    ccl <- coef (260, 130, 550, 250)
-    cbu <- coef (230, 330, 440, 550)
-    cbl <- coef (330, 230, 550, 450)
+    ce <- .coef (35, 200, 50, 550)
+    cdu <- .coef (35, 90, 125, 550)
+    cdl <- .coef (410, 110, 550, 160)
+    ccu <- .coef (30, 60, 280, 550)
+    ccl <- .coef (260, 130, 550, 250)
+    cbu <- .coef (230, 330, 440, 550)
+    cbl <- .coef (330, 230, 550, 450)
     #diabetes type 2 zones - creates polygons of a size dependent on data
-    limitE2 <- matrix (data= c (0, 35 / n, endx (35 / n, 200 / n, maxY, ce), 0, 0, #x limits E upper
+    limitE2 <- matrix (data= c (0, 35 / n, .endx (35 / n, 200 / n, maxY, ce), 0, 0, #x limits E upper
                                 200 / n, 200 / n, maxY, maxY, 200 / n),#y limits E upper
                        ncol=2, byrow=FALSE)
 
     limitD2L <- matrix (data= c (250 / n, 250 / n, 410 / n, maxX, maxX, 250 / n,#x limits D lower
-                                 0, 40 / n, 110 / n, endy (410 / n, 110 / n, maxX, cdl), 0, 0),#y limits D lower
+                                 0, 40 / n, 110 / n, .endy (410 / n, 110 / n, maxX, cdl), 0, 0),#y limits D lower
                         ncol=2, byrow=FALSE)
 
-    limitD2U <- matrix (data= c (0, 25 / n, 35 / n, endx (35 / n, 90 / n, maxY, cdu), 0, 0, #x limits D upper
+    limitD2U <- matrix (data= c (0, 25 / n, 35 / n, .endx (35 / n, 90 / n, maxY, cdu), 0, 0, #x limits D upper
                                  80 / n, 80 / n, 90 / n, maxY, maxY, 80 / n),#y limits D upper
                         ncol=2, byrow=FALSE)
 
     limitC2L <- matrix (data= c (90 / n, 260 / n, maxX, maxX, 90 / n, #x limits C lower
-                                 0, 130 / n, endy (260 / n, 130 / n, maxX, ccl), 0, 0),#y limits C lower
+                                 0, 130 / n, .endy (260 / n, 130 / n, maxX, ccl), 0, 0),#y limits C lower
                         ncol=2, byrow=FALSE)
 
-    limitC2U <- matrix (data= c (0, 30 / n, endx (30 / n, 60 / n, maxY, ccu), 0, 0, #x limits C upper
+    limitC2U <- matrix (data= c (0, 30 / n, .endx (30 / n, 60 / n, maxY, ccu), 0, 0, #x limits C upper
                                  60 / n, 60 / n, maxY, maxY, 60 / n),#y limits C upper
                         ncol=2, byrow=FALSE)
 
     limitB2L <- matrix (data= c (50 / n, 50 / n, 90 / n, 330 / n, maxX, maxX, 50 / n, #x limits B lower
-                                 0, 30 / n, 80 / n, 230 / n , endy (330 / n, 230 / n, maxX, cbl), 0, 0),#y limits B lower
+                                 0, 30 / n, 80 / n, 230 / n , .endy (330 / n, 230 / n, maxX, cbl), 0, 0),#y limits B lower
                         ncol=2, byrow=FALSE)
 
-    limitB2U <- matrix (data= c (0, 30 / n, 230 / n, endx (230 / n, 330 / n, maxY, cbu), 0, 0, #x limits B upper
+    limitB2U <- matrix (data= c (0, 30 / n, 230 / n, .endx (230 / n, 330 / n, maxY, cbu), 0, 0, #x limits B upper
                                  50 / n, 50 / n, 330 / n , maxY, maxY, 50 / n),#y limits B upper
                         ncol=2, byrow=FALSE)
 
@@ -272,4 +258,23 @@ getParkesZones <- function (ref, test, type=1, unit="gram"){
     zones[which (in.out (limitE2, testdf))] <- "E"
   }
   return (zones)
+}
+
+
+#finding tan coefficient for a line going trough 2 points
+.coef <- function (x, y, xend, yend){
+  if (xend==x) {
+    stop("Vertical line - function inapplicable")
+  }
+  return ( (yend - y) / (xend - x))
+}
+
+#setting y axis end point with tan coeff and x endpoint known
+.endy <- function (startx, starty, maxx, coef){
+  return ( (maxx - startx) * coef + starty)
+}
+
+#setting x axis end point with tan coeff and y endpoint known
+.endx <- function (startx, starty, maxy, coef){
+  return ( (maxy - starty)  / coef + startx)
 }

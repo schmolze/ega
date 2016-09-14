@@ -5,7 +5,7 @@ Authors@R: c(
     person("Daniel", "Schmolze",
     email="ega@schmolze.com", role=c("aut", "cre")),
     person("Sergei", "Mihhailov",
-    email="smihhailov1@sheffield.ac.uk", role=c("con"))
+    email="smihhailov1@sheffield.ac.uk", role=c("ctb"))
     )
 Maintainer: Daniel Schmolze <ega@schmolze.com>
 Description: Functions for assigning Clarke or Parkes (Consensus) error grid
@@ -14,10 +14,11 @@ Description: Functions for assigning Clarke or Parkes (Consensus) error grid
 Depends:
     R (>= 2.14.0)
 Imports:
-    ggplot2
+    ggplot2,
     mgcv
 Suggests:
     knitr
 License: MIT + file LICENSE
 LazyData: true
 VignetteBuilder: knitr
+RoxygenNote: 5.0.1

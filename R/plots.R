@@ -40,6 +40,8 @@
 #' @param zones An optional character vector specifying the Clarke zones
 #' for each paired value. If this is not supplied, \code{\link{getClarkeZones}}
 #' will be called to generate zone labels.
+#' @param unit A string specifying the units of measurement. This should be either
+#' \code{"gram"} (the default) for \code{mg/dl} or \code{"mol"} for \code{mmol/l}.
 #' @return A \code{\link[ggplot2]{ggplot}} object is returned. If the return
 #' value is not assigned, a plot is drawn.
 #' @examples
@@ -228,6 +230,8 @@ plotClarkeGrid <- function (referenceVals, testVals, title = "Clarke Error Grid"
 #' @param zones An optional character vector specifying the Clarke zones
 #' for each paired value. If this is not supplied, \code{\link{getClarkeZones}}
 #' will be called to generate zone labels.
+#' @param unit A string specifying the units of measurement. This should be either
+#' \code{"gram"} (the default) for \code{mg/dl} or \code{"mol"} for \code{mmol/l}.
 #' @return A \code{\link[ggplot2]{ggplot}} object is returned. If the return
 #' value is not assigned, a plot is drawn.
 #' @examples
@@ -270,7 +274,7 @@ plotParkesGrid <- function (referenceVals, testVals, type=1, title="", xlab="", 
     stop("'unit' must be either 'mol' or 'gram'.")
   }
   if (title==""){
-    title <- paste("Parkes (Consensus) Error Grid for Type", type, "Diabetes")
+    title <- paste("Parkes (Consensus) Error Grid for Type ", type, " Diabetes")
   }
   if (unit == "mol") {
     n <- 18
@@ -307,13 +311,13 @@ plotParkesGrid <- function (referenceVals, testVals, type=1, title="", xlab="", 
 
 
   if (type==1){#type 1 diabetes
-    ce <- coef (35, 155, 50, 550)
-    cdu <- coef (80, 215, 125, 550)
-    cdl <- coef (250, 40, 550, 150)
-    ccu <- coef (70, 110, 260, 550)
-    ccl <- coef (260, 130, 550, 250)
-    cbu <- coef (280, 380, 430, 550)
-    cbl <- coef (385, 300, 550, 450)
+    ce <- .coef (35, 155, 50, 550)
+    cdu <- .coef (80, 215, 125, 550)
+    cdl <- .coef (250, 40, 550, 150)
+    ccu <- .coef (70, 110, 260, 550)
+    ccl <- .coef (260, 130, 550, 250)
+    cbu <- .coef (280, 380, 430, 550)
+    cbl <- .coef (385, 300, 550, 450)
     border <- data.frame (x1=c (0 / n,
                                 0 / n, 30 / n, 140 / n, 280 / n,
                                 50 / n, 50 / n, 170 / n, 385 / n,
@@ -331,30 +335,30 @@ plotParkesGrid <- function (referenceVals, testVals, type=1, title="", xlab="", 
                                 0 / n, 40 / n,
                                 150 / n, 155 / n),
                           xend=c (min (maxX, maxY),
-                                  30 / n, 140 / n, 280 / n, endx (280 / n, 380 / n, maxY, cbu),
+                                  30 / n, 140 / n, 280 / n, .endx (280 / n, 380 / n, maxY, cbu),
                                   50 / n, 170 / n, 385 / n, maxX,
-                                  30 / n, 50 / n, 70 / n, endx (70 / n, 110 / n, maxY, ccu),
+                                  30 / n, 50 / n, 70 / n, .endx (70 / n, 110 / n, maxY, ccu),
                                   120 / n, 260 / n, maxX,
-                                  25 / n, 50 / n, 80 / n, endx (80 / n, 215 / n, maxY, cdu),
+                                  25 / n, 50 / n, 80 / n, .endx (80 / n, 215 / n, maxY, cdu),
                                   250 / n, maxX,
-                                  35 / n, endx (35 / n, 155 / n, maxY, ce) ),
+                                  35 / n, .endx (35 / n, 155 / n, maxY, ce) ),
                           yend=c (min (maxX, maxY),
                                   50 / n, 170 / n, 380 / n, maxY,
-                                  30 / n, 145 / n, 300 /n, endy (385 / n, 300 / n, maxX, cbl),
+                                  30 / n, 145 / n, 300 /n, .endy (385 / n, 300 / n, maxX, cbl),
                                   60 / n, 80 / n, 110 / n, maxY,
-                                  30 / n, 130 / n, endy (260 / n, 130 / n, maxX, ccl),
+                                  30 / n, 130 / n, .endy (260 / n, 130 / n, maxX, ccl),
                                   100 / n, 125 / n, 215 / n, maxY,
-                                  40 / n, endy (410 / n, 110 / n, maxX, cdl),
+                                  40 / n, .endy (410 / n, 110 / n, maxX, cdl),
                                   155 / n, maxY))
 
   } else {#type 2 diabetes
-    ce <- coef (35, 200, 50, 550)
-    cdu <- coef (35, 90, 125, 550)
-    cdl <- coef (410, 110, 550, 160)
-    ccu <- coef (30, 60, 280, 550)
-    ccl <- coef (260, 130, 550, 250)
-    cbu <- coef (230, 330, 440, 550)
-    cbl <- coef (330, 230, 550, 450)
+    ce <- .coef (35, 200, 50, 550)
+    cdu <- .coef (35, 90, 125, 550)
+    cdl <- .coef (410, 110, 550, 160)
+    ccu <- .coef (30, 60, 280, 550)
+    ccl <- .coef (260, 130, 550, 250)
+    cbu <- .coef (230, 330, 440, 550)
+    cbl <- .coef (330, 230, 550, 450)
 
     border <- data.frame (x1=c (0 / n,
                                 0 / n, 30 / n, 230 / n,
@@ -373,20 +377,20 @@ plotParkesGrid <- function (referenceVals, testVals, type=1, title="", xlab="", 
                                 0 / n, 40 / n, 110 / n,
                                 200 / n, 200 / n),
                           xend=c (min (maxX, maxY),
-                                  30 / n, 230 / n, endx (230 / n, 330 / n, maxY, cbu),
+                                  30 / n, 230 / n, .endx (230 / n, 330 / n, maxY, cbu),
                                   50 / n, 90 / n, 330 / n, maxX,
-                                  30 / n, endx (30 / n, 60 / n, maxY, ccu),
+                                  30 / n, .endx (30 / n, 60 / n, maxY, ccu),
                                   260 / n, maxX,
-                                  25 / n, 35 / n, endx (35 / n, 90 / n, maxY, cdu),
+                                  25 / n, 35 / n, .endx (35 / n, 90 / n, maxY, cdu),
                                   250 / n, 410 / n, maxX,
-                                  35 / n, endx (35 / n, 200 / n, maxY, ce) ),
+                                  35 / n, .endx (35 / n, 200 / n, maxY, ce) ),
                           yend=c (min (maxX, maxY),
                                   50 / n, 330 / n, maxY,
-                                  30 / n, 80 / n, 230 / n, endy (330 / n, 230 / n, maxX, cbl),
+                                  30 / n, 80 / n, 230 / n, .endy (330 / n, 230 / n, maxX, cbl),
                                   60 / n, maxY,
-                                  130 / n, endy (260 / n, 130 / n, maxX, ccl),
+                                  130 / n, .endy (260 / n, 130 / n, maxX, ccl),
                                   80 / n, 90 / n, maxY,
-                                  40 / n, 110 / n, endy (410 / n, 110 / n, maxX, cdl),
+                                  40 / n, 110 / n, .endy (410 / n, 110 / n, maxX, cdl),
                                   200 / n, maxY))
 
   }
