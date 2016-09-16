@@ -79,6 +79,15 @@ getClarkeZones <- function (referenceVals, testVals, unit="gram"){
 
   # assign A after D, since part of A will overwrite D
 
+  # zone C: (ref >= 130 and ref <= 180 and test < eq1) or
+  #   (ref > 70 and ref > 180 and ref > eq2)
+  zoneC <- (referenceVals >= 130 / n & referenceVals <= 180 / n & testVals < eq1) |
+    (referenceVals > 70 / n & testVals > 180 / n & testVals > eq2)
+  zones[zoneC] <- "C"
+
+
+  #Assign A after C, since part of C will override A
+
   # zone A: are <= 20  or (ref < 58.3 and test < 70)
   zoneA <- (are <= 20) |
     (referenceVals < 70 / n & testVals < 70 / n)#error solved
@@ -89,15 +98,11 @@ getClarkeZones <- function (referenceVals, testVals, unit="gram"){
     (referenceVals >= 180 / n & testVals <= 70 / n)
   zones[zoneE] <- "E"
 
-  # zone C: (ref >= 130 and ref <= 180 and test < eq1) or
-  #   (ref > 70 and ref > 180 and ref > eq2)
-  zoneC <- (referenceVals >= 130 / n & referenceVals <= 180 / n & testVals < eq1) |
-    (referenceVals > 70 / n & testVals > 180 / n & testVals > eq2)
-  zones[zoneC] <- "C"
-
   # the rest are zone B
   zones <- replace (zones, zones == "", "B")
+
   return (zones)
+
 }
 
 
