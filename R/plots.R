@@ -100,7 +100,8 @@ plotClarkeGrid <- function (referenceVals, testVals, title = "Clarke Error Grid"
   }
   tolerance <- 0.2
 
-  # create a df for ggplot
+  # create a df for ggplot (NULL to appease CRAN)
+  ref <- test <- NULL
   data <- data.frame (ref=referenceVals, test=testVals, zones=zones)
 
   #better solution for scaling axis automatically with some extra space
@@ -116,7 +117,8 @@ plotClarkeGrid <- function (referenceVals, testVals, title = "Clarke Error Grid"
                         color=c ("blue", "blue", "blue", "blue", "blue",
                                  "red", "red", "red", "red"))
 
-  #segment endpoints for borders
+  #segment endpoints for borders (NULL to appease CRAN)
+  x1 <- y1 <- xend <- yend <- NULL
   border <- data.frame (x1=c (58.3 / n, 70 / n, 70 / n, 70 / n, 0, 240 / n,
                               0, 70 / n, 180 / n, 240 / n, 180 / n, 130 / n),
                         y1=c (70 / n, 56 / n, 180 / n, 83 / n, 180 / n,
@@ -299,6 +301,8 @@ plotParkesGrid <- function (referenceVals, testVals, type=1, title="", xlab="", 
     zones <- getParkesZones (referenceVals, testVals, type, unit)
   }
 
+  # NULL to appease CRAN
+  ref <- test <- NULL
   data <- data.frame (ref=referenceVals, test=testVals, zones=zones)
 
   maxX <- max (max (data$ref) + 20 / n, 550 / n)#better solution
@@ -318,6 +322,10 @@ plotParkesGrid <- function (referenceVals, testVals, type=1, title="", xlab="", 
     ccl <- .coef (260, 130, 550, 250)
     cbu <- .coef (280, 380, 430, 550)
     cbl <- .coef (385, 300, 550, 450)
+
+    # NULL to appease CRAN
+    x1 <- y1 <- xend <- yend <- NULL
+
     border <- data.frame (x1=c (0 / n,
                                 0 / n, 30 / n, 140 / n, 280 / n,
                                 50 / n, 50 / n, 170 / n, 385 / n,
